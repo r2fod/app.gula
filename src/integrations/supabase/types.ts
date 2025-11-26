@@ -14,7 +14,417 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      allergies: {
+        Row: {
+          allergy: string
+          created_at: string
+          event_id: string
+          guest_name: string
+          id: string
+          notes: string | null
+          table_number: string | null
+        }
+        Insert: {
+          allergy: string
+          created_at?: string
+          event_id: string
+          guest_name: string
+          id?: string
+          notes?: string | null
+          table_number?: string | null
+        }
+        Update: {
+          allergy?: string
+          created_at?: string
+          event_id?: string
+          guest_name?: string
+          id?: string
+          notes?: string | null
+          table_number?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "allergies_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      event_features: {
+        Row: {
+          beer_corner: boolean | null
+          cake: boolean | null
+          candy_bar: boolean | null
+          cheese_corner: boolean | null
+          cheese_corner_pax: number | null
+          cocktail_bar: boolean | null
+          created_at: string
+          drinks_bar: boolean | null
+          event_id: string
+          extra_bar_hours: boolean | null
+          ham_cutter: boolean | null
+          ham_cutter_notes: string | null
+          id: string
+          lemonade_corner: boolean | null
+        }
+        Insert: {
+          beer_corner?: boolean | null
+          cake?: boolean | null
+          candy_bar?: boolean | null
+          cheese_corner?: boolean | null
+          cheese_corner_pax?: number | null
+          cocktail_bar?: boolean | null
+          created_at?: string
+          drinks_bar?: boolean | null
+          event_id: string
+          extra_bar_hours?: boolean | null
+          ham_cutter?: boolean | null
+          ham_cutter_notes?: string | null
+          id?: string
+          lemonade_corner?: boolean | null
+        }
+        Update: {
+          beer_corner?: boolean | null
+          cake?: boolean | null
+          candy_bar?: boolean | null
+          cheese_corner?: boolean | null
+          cheese_corner_pax?: number | null
+          cocktail_bar?: boolean | null
+          created_at?: string
+          drinks_bar?: boolean | null
+          event_id?: string
+          extra_bar_hours?: boolean | null
+          ham_cutter?: boolean | null
+          ham_cutter_notes?: string | null
+          id?: string
+          lemonade_corner?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_features_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      event_timings: {
+        Row: {
+          banquet_start: string | null
+          bar_end: string | null
+          bar_hours: number | null
+          bar_start: string | null
+          ceremony: string | null
+          cocktail_start: string | null
+          created_at: string
+          event_id: string
+          guest_arrival: string | null
+          id: string
+        }
+        Insert: {
+          banquet_start?: string | null
+          bar_end?: string | null
+          bar_hours?: number | null
+          bar_start?: string | null
+          ceremony?: string | null
+          cocktail_start?: string | null
+          created_at?: string
+          event_id: string
+          guest_arrival?: string | null
+          id?: string
+        }
+        Update: {
+          banquet_start?: string | null
+          bar_end?: string | null
+          bar_hours?: number | null
+          bar_start?: string | null
+          ceremony?: string | null
+          cocktail_start?: string | null
+          created_at?: string
+          event_id?: string
+          guest_arrival?: string | null
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_timings_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      events: {
+        Row: {
+          adults: number | null
+          canapes_per_person: number | null
+          children: number | null
+          created_at: string
+          event_date: string
+          event_type: Database["public"]["Enums"]["event_type"]
+          id: string
+          notes: string | null
+          staff: number | null
+          total_guests: number
+          updated_at: string
+          user_id: string
+          venue: string
+        }
+        Insert: {
+          adults?: number | null
+          canapes_per_person?: number | null
+          children?: number | null
+          created_at?: string
+          event_date: string
+          event_type: Database["public"]["Enums"]["event_type"]
+          id?: string
+          notes?: string | null
+          staff?: number | null
+          total_guests?: number
+          updated_at?: string
+          user_id: string
+          venue: string
+        }
+        Update: {
+          adults?: number | null
+          canapes_per_person?: number | null
+          children?: number | null
+          created_at?: string
+          event_date?: string
+          event_type?: Database["public"]["Enums"]["event_type"]
+          id?: string
+          notes?: string | null
+          staff?: number | null
+          total_guests?: number
+          updated_at?: string
+          user_id?: string
+          venue?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "events_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      furniture: {
+        Row: {
+          created_at: string
+          description: string | null
+          event_id: string
+          id: string
+          item_name: string
+          location: string | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          event_id: string
+          id?: string
+          item_name: string
+          location?: string | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          event_id?: string
+          id?: string
+          item_name?: string
+          location?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "furniture_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      menu_items: {
+        Row: {
+          category: string
+          created_at: string
+          description: string | null
+          event_id: string
+          id: string
+          name: string
+          notes: string | null
+          sort_order: number | null
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          description?: string | null
+          event_id: string
+          id?: string
+          name: string
+          notes?: string | null
+          sort_order?: number | null
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          event_id?: string
+          id?: string
+          name?: string
+          notes?: string | null
+          sort_order?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "menu_items_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      other_requirements: {
+        Row: {
+          created_at: string
+          description: string | null
+          event_id: string
+          id: string
+          item_name: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          event_id: string
+          id?: string
+          item_name: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          event_id?: string
+          id?: string
+          item_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "other_requirements_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          company_name: string | null
+          created_at: string
+          full_name: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          company_name?: string | null
+          created_at?: string
+          full_name?: string | null
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          company_name?: string | null
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      supplies: {
+        Row: {
+          created_at: string
+          event_id: string
+          id: string
+          item_name: string
+          item_type: string | null
+          notes: string | null
+          quantity: number
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          id?: string
+          item_name: string
+          item_type?: string | null
+          notes?: string | null
+          quantity: number
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          id?: string
+          item_name?: string
+          item_type?: string | null
+          notes?: string | null
+          quantity?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "supplies_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tables: {
+        Row: {
+          created_at: string
+          description: string | null
+          event_id: string
+          guests: number
+          id: string
+          sort_order: number | null
+          table_name: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          event_id: string
+          guests: number
+          id?: string
+          sort_order?: number | null
+          table_name: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          event_id?: string
+          guests?: number
+          id?: string
+          sort_order?: number | null
+          table_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tables_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +433,12 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      event_type:
+        | "boda"
+        | "produccion"
+        | "evento_privado"
+        | "delivery"
+        | "comunion"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +565,14 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      event_type: [
+        "boda",
+        "produccion",
+        "evento_privado",
+        "delivery",
+        "comunion",
+      ],
+    },
   },
 } as const
