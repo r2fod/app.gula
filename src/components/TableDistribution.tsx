@@ -1,28 +1,121 @@
+import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
-import { Users } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Users, Edit, Save, X, Plus, Trash2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
-const TableDistribution = () => {
-  const tables = [
-    { name: "Presidencial", pax: 2, description: "" },
-    { name: "Mesa 1", pax: 19, description: "Familia Gema - Mesa alargada" },
-    { name: "Mesa 2", pax: 8, description: "Amigos y familia Gema - Mesa redonda" },
-    { name: "Mesa 3", pax: 11, description: "Primos Gema - Mesa redonda" },
-    { name: "Mesa 4", pax: 14, description: "Amigos Gema - Mesa redonda" },
-    { name: "Mesa 5", pax: 9, description: "Amigos - Mesa redonda" },
-    { name: "Mesa 6", pax: 12, description: "Familia novio - Mesa redonda" },
-    { name: "Mesa 7", pax: 9, description: "Amigos novio - Mesa redonda" },
-    { name: "Mesa 8", pax: 9, description: "Amigos - Mesa redonda" },
-    { name: "Mesa 9", pax: 8, description: "Amigos - Mesa redonda" },
-    { name: "Mesa 10", pax: 9, description: "Amigos - Mesa redonda" },
-    { name: "Mesa 11", pax: 10, description: "Amigos - Mesa redonda" },
-    { name: "Mesa 12", pax: 3, description: "Amigos - Mesa redonda" },
-  ];
+interface TableDistributionProps {
+  eventId: string;
+}
 
-  const totalPax = tables.reduce((sum, table) => sum + table.pax, 0);
+interface Table {
+  id?: string;
+  table_name: string;
+  guests: number;
+  description: string;
+}
+
+const TableDistribution = ({ eventId }: TableDistributionProps) => {
+  const [tables, setTables] = useState<Table[]>([]);
+  const [isEditing, setIsEditing] = useState(false);
+  const [formData, setFormData] = useState<Table[]>([]);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    fetchTables();
+  }, [eventId]);
+
+  const fetchTables = async () => {
+    const { data } = await supabase
+      .from("tables")
+      .select("*")
+      .eq("event_id", eventId)
+      .order("sort_order");
+
+    if (data) {
+      setTables(data);
+      setFormData(data);
+    }
+  };
+
+  const handleSave = async () => {
+    const existingIds = formData.filter(t => t.id).map(t => t.id);
+    const toDelete = tables.filter(t => t.id && !existingIds.includes(t.id));
+    
+    if (toDelete.length > 0) {
+      await supabase
+        .from("tables")
+        .delete()
+        .in("id", toDelete.map(t => t.id!));
+    }
+
+    for (const table of formData) {
+      if (table.id) {
+        await supabase
+          .from("tables")
+          .update({
+            table_name: table.table_name,
+            guests: table.guests,
+            description: table.description,
+          })
+          .eq("id", table.id);
+      } else {
+        await supabase
+          .from("tables")
+          .insert({
+            event_id: eventId,
+            table_name: table.table_name,
+            guests: table.guests,
+            description: table.description,
+          });
+      }
+    }
+
+    toast({ title: "Guardado", description: "Distribución de mesas actualizada" });
+    setIsEditing(false);
+    fetchTables();
+  };
+
+  const addTable = () => {
+    setFormData([...formData, { table_name: "", guests: 0, description: "" }]);
+  };
+
+  const removeTable = (index: number) => {
+    setFormData(formData.filter((_, i) => i !== index));
+  };
+
+  const updateTable = (index: number, field: keyof Table, value: string | number) => {
+    const updated = [...formData];
+    updated[index] = { ...updated[index], [field]: value };
+    setFormData(updated);
+  };
+
+  const totalPax = (isEditing ? formData : tables).reduce((sum, table) => sum + table.guests, 0);
 
   return (
     <section>
-      <h2 className="text-3xl font-bold mb-6 text-foreground">Distribución de Mesas</h2>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-3xl font-bold text-foreground">Distribución de Mesas</h2>
+        {!isEditing ? (
+          <Button size="sm" onClick={() => setIsEditing(true)}>
+            <Edit className="w-4 h-4 mr-2" />
+            Editar
+          </Button>
+        ) : (
+          <div className="flex gap-2">
+            <Button size="sm" onClick={handleSave}>
+              <Save className="w-4 h-4 mr-2" />
+              Guardar
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => { setIsEditing(false); setFormData(tables); }}>
+              <X className="w-4 h-4 mr-2" />
+              Cancelar
+            </Button>
+          </div>
+        )}
+      </div>
       <Card className="bg-section-staff border-none shadow-soft">
         <div className="p-6">
           <div className="mb-6 p-4 bg-primary/10 rounded-lg flex items-center justify-between">
@@ -34,21 +127,56 @@ const TableDistribution = () => {
           </div>
           
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {tables.map((table, index) => (
-              <div key={index} className="p-4 rounded-lg bg-background/50 border-l-4 border-primary/50">
-                <div className="flex items-start justify-between mb-2">
-                  <div className="font-bold text-lg text-foreground">{table.name}</div>
-                  <div className="flex items-center gap-2">
-                    <Users className="w-4 h-4 text-primary" />
-                    <span className="font-bold text-primary">{table.pax}</span>
+            {(isEditing ? formData : tables).map((table, index) => (
+              <div key={table.id || index} className="p-4 rounded-lg bg-background/50 border-l-4 border-primary/50">
+                {isEditing ? (
+                  <div className="space-y-2">
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="Nombre mesa"
+                        value={table.table_name}
+                        onChange={(e) => updateTable(index, "table_name", e.target.value)}
+                      />
+                      <Input
+                        type="number"
+                        placeholder="PAX"
+                        value={table.guests}
+                        onChange={(e) => updateTable(index, "guests", parseInt(e.target.value) || 0)}
+                        className="w-20"
+                      />
+                      <Button size="icon" variant="destructive" onClick={() => removeTable(index)}>
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                    <Input
+                      placeholder="Descripción"
+                      value={table.description}
+                      onChange={(e) => updateTable(index, "description", e.target.value)}
+                    />
                   </div>
-                </div>
-                {table.description && (
-                  <div className="text-sm text-muted-foreground">{table.description}</div>
+                ) : (
+                  <>
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="font-bold text-lg text-foreground">{table.table_name}</div>
+                      <div className="flex items-center gap-2">
+                        <Users className="w-4 h-4 text-primary" />
+                        <span className="font-bold text-primary">{table.guests}</span>
+                      </div>
+                    </div>
+                    {table.description && (
+                      <div className="text-sm text-muted-foreground">{table.description}</div>
+                    )}
+                  </>
                 )}
               </div>
             ))}
           </div>
+          {isEditing && (
+            <Button onClick={addTable} variant="outline" className="mt-4">
+              <Plus className="w-4 h-4 mr-2" />
+              Agregar Mesa
+            </Button>
+          )}
         </div>
       </Card>
     </section>
