@@ -8,83 +8,83 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 28 30% 98%;
-    --foreground: 28 10% 15%;
+    --background: 0 0% 100%;
+    --foreground: 0 0% 10%;
 
     --card: 0 0% 100%;
-    --card-foreground: 28 10% 15%;
+    --card-foreground: 0 0% 10%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 28 10% 15%;
+    --popover-foreground: 0 0% 10%;
 
-    --primary: 24 65% 48%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 78 100% 50%;
+    --primary-foreground: 0 0% 10%;
 
-    --secondary: 35 80% 92%;
-    --secondary-foreground: 28 10% 15%;
+    --secondary: 0 0% 15%;
+    --secondary-foreground: 0 0% 98%;
 
-    --muted: 35 20% 95%;
-    --muted-foreground: 28 8% 45%;
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 45%;
 
-    --accent: 35 80% 88%;
-    --accent-foreground: 28 10% 15%;
+    --accent: 78 95% 45%;
+    --accent-foreground: 0 0% 10%;
 
-    --destructive: 0 70% 55%;
-    --destructive-foreground: 0 0% 100%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
 
-    --border: 35 15% 88%;
-    --input: 35 15% 88%;
-    --ring: 24 65% 48%;
+    --border: 0 0% 90%;
+    --input: 0 0% 90%;
+    --ring: 78 100% 50%;
 
     --radius: 0.75rem;
 
-    --section-info: 195 70% 96%;
-    --section-menu: 145 60% 96%;
-    --section-supplies: 280 50% 96%;
-    --section-staff: 35 80% 96%;
-    --section-special: 320 60% 96%;
+    --section-info: 78 30% 97%;
+    --section-menu: 78 25% 96%;
+    --section-supplies: 0 0% 97%;
+    --section-staff: 78 20% 95%;
+    --section-special: 0 0% 96%;
 
     --shadow-soft: 0 2px 8px rgba(0, 0, 0, 0.04);
-    --shadow-medium: 0 4px 16px rgba(0, 0, 0, 0.08);
+    --shadow-medium: 0 4px 16px rgba(163, 255, 0, 0.1);
   }
 
   .dark {
-    --background: 28 20% 8%;
-    --foreground: 35 20% 95%;
+    --background: 0 0% 10%;
+    --foreground: 0 0% 98%;
 
-    --card: 28 15% 12%;
-    --card-foreground: 35 20% 95%;
+    --card: 0 0% 15%;
+    --card-foreground: 0 0% 98%;
 
-    --popover: 28 15% 12%;
-    --popover-foreground: 35 20% 95%;
+    --popover: 0 0% 15%;
+    --popover-foreground: 0 0% 98%;
 
-    --primary: 24 65% 55%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 78 100% 50%;
+    --primary-foreground: 0 0% 10%;
 
-    --secondary: 28 15% 18%;
-    --secondary-foreground: 35 20% 95%;
+    --secondary: 0 0% 20%;
+    --secondary-foreground: 0 0% 98%;
 
-    --muted: 28 12% 16%;
-    --muted-foreground: 35 12% 65%;
+    --muted: 0 0% 20%;
+    --muted-foreground: 0 0% 65%;
 
-    --accent: 28 15% 20%;
-    --accent-foreground: 35 20% 95%;
+    --accent: 78 95% 45%;
+    --accent-foreground: 0 0% 10%;
 
-    --destructive: 0 70% 50%;
-    --destructive-foreground: 0 0% 100%;
+    --destructive: 0 62% 50%;
+    --destructive-foreground: 0 0% 98%;
 
-    --border: 28 12% 22%;
-    --input: 28 12% 22%;
-    --ring: 24 65% 55%;
+    --border: 0 0% 25%;
+    --input: 0 0% 25%;
+    --ring: 78 100% 50%;
 
-    --section-info: 195 30% 14%;
-    --section-menu: 145 25% 14%;
-    --section-supplies: 280 20% 14%;
-    --section-staff: 35 30% 14%;
-    --section-special: 320 25% 14%;
+    --section-info: 78 20% 18%;
+    --section-menu: 78 15% 19%;
+    --section-supplies: 0 0% 17%;
+    --section-staff: 78 10% 16%;
+    --section-special: 0 0% 16%;
 
-    --shadow-soft: 0 2px 8px rgba(0, 0, 0, 0.2);
-    --shadow-medium: 0 4px 16px rgba(0, 0, 0, 0.3);
+    --shadow-soft: 0 2px 8px rgba(0, 0, 0, 0.3);
+    --shadow-medium: 0 4px 16px rgba(163, 255, 0, 0.2);
   }
 }
 
