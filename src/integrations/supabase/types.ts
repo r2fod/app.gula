@@ -52,6 +52,94 @@ export type Database = {
           },
         ]
       }
+      beverages: {
+        Row: {
+          category: string
+          created_at: string
+          event_id: string
+          id: string
+          is_extra: boolean | null
+          item_name: string
+          notes: string | null
+          price_per_person: number | null
+          quantity: number
+          total_price: number | null
+          unit_price: number | null
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          event_id: string
+          id?: string
+          is_extra?: boolean | null
+          item_name: string
+          notes?: string | null
+          price_per_person?: number | null
+          quantity?: number
+          total_price?: number | null
+          unit_price?: number | null
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          event_id?: string
+          id?: string
+          is_extra?: boolean | null
+          item_name?: string
+          notes?: string | null
+          price_per_person?: number | null
+          quantity?: number
+          total_price?: number | null
+          unit_price?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "beverages_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      corners: {
+        Row: {
+          corner_type: string
+          created_at: string
+          event_id: string
+          id: string
+          is_enabled: boolean | null
+          notes: string | null
+          pax_count: number | null
+        }
+        Insert: {
+          corner_type: string
+          created_at?: string
+          event_id: string
+          id?: string
+          is_enabled?: boolean | null
+          notes?: string | null
+          pax_count?: number | null
+        }
+        Update: {
+          corner_type?: string
+          created_at?: string
+          event_id?: string
+          id?: string
+          is_enabled?: boolean | null
+          notes?: string | null
+          pax_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "corners_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       event_features: {
         Row: {
           beer_corner: boolean | null
@@ -111,6 +199,47 @@ export type Database = {
           },
         ]
       }
+      event_staff: {
+        Row: {
+          arrival_time: string | null
+          created_at: string
+          departure_time: string | null
+          event_id: string
+          id: string
+          notes: string | null
+          role: string
+          staff_count: number
+        }
+        Insert: {
+          arrival_time?: string | null
+          created_at?: string
+          departure_time?: string | null
+          event_id: string
+          id?: string
+          notes?: string | null
+          role: string
+          staff_count?: number
+        }
+        Update: {
+          arrival_time?: string | null
+          created_at?: string
+          departure_time?: string | null
+          event_id?: string
+          id?: string
+          notes?: string | null
+          role?: string
+          staff_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_staff_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       event_timings: {
         Row: {
           banquet_start: string | null
@@ -162,13 +291,18 @@ export type Database = {
         Row: {
           adults: number | null
           canapes_per_person: number | null
+          ceremony_notes: string | null
           children: number | null
+          children_menu: string | null
           created_at: string
           event_date: string
           event_type: Database["public"]["Enums"]["event_type"]
           id: string
+          minutas_count: number | null
           notes: string | null
+          resopon: string | null
           staff: number | null
+          tablecloth_color: string | null
           total_guests: number
           updated_at: string
           user_id: string
@@ -177,13 +311,18 @@ export type Database = {
         Insert: {
           adults?: number | null
           canapes_per_person?: number | null
+          ceremony_notes?: string | null
           children?: number | null
+          children_menu?: string | null
           created_at?: string
           event_date: string
           event_type: Database["public"]["Enums"]["event_type"]
           id?: string
+          minutas_count?: number | null
           notes?: string | null
+          resopon?: string | null
           staff?: number | null
+          tablecloth_color?: string | null
           total_guests?: number
           updated_at?: string
           user_id: string
@@ -192,13 +331,18 @@ export type Database = {
         Update: {
           adults?: number | null
           canapes_per_person?: number | null
+          ceremony_notes?: string | null
           children?: number | null
+          children_menu?: string | null
           created_at?: string
           event_date?: string
           event_type?: Database["public"]["Enums"]["event_type"]
           id?: string
+          minutas_count?: number | null
           notes?: string | null
+          resopon?: string | null
           staff?: number | null
+          tablecloth_color?: string | null
           total_guests?: number
           updated_at?: string
           user_id?: string
@@ -348,6 +492,123 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      recipe_ingredients: {
+        Row: {
+          base_quantity: number
+          calculated_quantity: number | null
+          created_at: string
+          event_id: string
+          id: string
+          ingredient_name: string
+          notes: string | null
+          recipe_name: string
+          unit: string
+        }
+        Insert: {
+          base_quantity: number
+          calculated_quantity?: number | null
+          created_at?: string
+          event_id: string
+          id?: string
+          ingredient_name: string
+          notes?: string | null
+          recipe_name: string
+          unit: string
+        }
+        Update: {
+          base_quantity?: number
+          calculated_quantity?: number | null
+          created_at?: string
+          event_id?: string
+          id?: string
+          ingredient_name?: string
+          notes?: string | null
+          recipe_name?: string
+          unit?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recipe_ingredients_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rentals: {
+        Row: {
+          created_at: string
+          event_id: string
+          id: string
+          item_name: string
+          notes: string | null
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          id?: string
+          item_name: string
+          notes?: string | null
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          id?: string
+          item_name?: string
+          notes?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rentals_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      room_equipment: {
+        Row: {
+          category: string
+          created_at: string
+          event_id: string
+          id: string
+          item_name: string
+          notes: string | null
+          quantity: string | null
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          event_id: string
+          id?: string
+          item_name: string
+          notes?: string | null
+          quantity?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          event_id?: string
+          id?: string
+          item_name?: string
+          notes?: string | null
+          quantity?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "room_equipment_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       supplies: {
         Row: {
