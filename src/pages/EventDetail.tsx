@@ -11,6 +11,11 @@ import MenuSection from "@/components/MenuSection";
 import SuppliesSection from "@/components/SuppliesSection";
 import TableDistribution from "@/components/TableDistribution";
 import SpecialRequirements from "@/components/SpecialRequirements";
+import BeveragesSection from "@/components/BeveragesSection";
+import CornersSection from "@/components/CornersSection";
+import RoomEquipmentSection from "@/components/RoomEquipmentSection";
+import StaffSection from "@/components/StaffSection";
+import RentalsSection from "@/components/RentalsSection";
 
 interface Event {
   id: string;
@@ -83,13 +88,39 @@ const EventDetail = () => {
 
       <EventHeader event={event} onUpdate={fetchEvent} />
 
-      <main className="container mx-auto px-4 py-8 space-y-12">
-        <Timeline eventId={event.id} />
+      <main className="container mx-auto px-4 py-8 space-y-8">
+        {/* Sección 1: Timing y Resumen */}
+        <section className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <Timeline eventId={event.id} />
+          <CornersSection eventId={event.id} />
+        </section>
+
+        {/* Sección 2: Features del evento */}
         <EventInfo eventId={event.id} />
+
+        {/* Sección 3: Menú */}
         <MenuSection eventId={event.id} />
+
+        {/* Sección 4: Bebidas y Barra libre */}
+        <BeveragesSection eventId={event.id} totalGuests={event.total_guests} />
+
+        {/* Sección 5: Cristalería y Suministros */}
         <SuppliesSection eventId={event.id} />
+
+        {/* Sección 6: Equipamiento de sala y cocina */}
+        <RoomEquipmentSection eventId={event.id} />
+
+        {/* Sección 7: Personal */}
+        <StaffSection eventId={event.id} />
+
+        {/* Sección 8: Mesas */}
         <TableDistribution eventId={event.id} />
+
+        {/* Sección 9: Alergias y requisitos especiales */}
         <SpecialRequirements eventId={event.id} />
+
+        {/* Sección 10: Alquileres y seguimiento */}
+        <RentalsSection eventId={event.id} />
       </main>
     </div>
   );
