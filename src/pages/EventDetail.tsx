@@ -16,6 +16,7 @@ import CornersSection from "@/components/CornersSection";
 import RoomEquipmentSection from "@/components/RoomEquipmentSection";
 import StaffSection from "@/components/StaffSection";
 import RentalsSection from "@/components/RentalsSection";
+import AIAssistant from "@/components/AIAssistant";
 
 interface Event {
   id: string;
@@ -122,6 +123,9 @@ const EventDetail = () => {
         {/* Sección 10: Alquileres y seguimiento */}
         <RentalsSection eventId={event.id} />
       </main>
+
+      {/* AI Assistant */}
+      <AIAssistant eventId={event.id} />
     </div>
   );
 };

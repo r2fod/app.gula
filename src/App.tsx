@@ -10,6 +10,7 @@ import Auth from "./pages/Auth";
 import Events from "./pages/Events";
 import EventDetail from "./pages/EventDetail";
 import CreateEvent from "./pages/CreateEvent";
+import Menus from "./pages/Menus";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -45,6 +46,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <EventDetail />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/menus"
+              element={
+                <ProtectedRoute>
+                  <Menus />
                 </ProtectedRoute>
               }
             />

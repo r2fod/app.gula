@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Calendar, MapPin, Users, Plus, LogOut, Loader2 } from "lucide-react";
+import { Calendar, MapPin, Users, Plus, LogOut, Loader2, UtensilsCrossed } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
@@ -76,6 +76,12 @@ const Events = () => {
           <div className="flex items-center justify-between">
             <h1 className="text-2xl font-bold">Mis Eventos</h1>
             <div className="flex items-center gap-4">
+              <Button variant="outline" asChild>
+                <Link to="/menus">
+                  <UtensilsCrossed className="w-4 h-4 mr-2" />
+                  Menús
+                </Link>
+              </Button>
               <Button asChild>
                 <Link to="/events/create">
                   <Plus className="w-4 h-4 mr-2" />

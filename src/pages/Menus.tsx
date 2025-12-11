@@ -1,0 +1,33 @@
+import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
+import MenuManager from "@/components/MenuManager";
+import AIAssistant from "@/components/AIAssistant";
+
+const Menus = () => {
+  const navigate = useNavigate();
+
+  return (
+    <div className="min-h-screen bg-background">
+      <div className="mb-6">
+        <Button
+          variant="ghost"
+          onClick={() => navigate("/events")}
+          className="ml-4 mt-4"
+        >
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Volver a Eventos
+        </Button>
+      </div>
+
+      <main className="container mx-auto px-4 py-8">
+        <h1 className="text-3xl font-bold mb-8">Gestión de Menús</h1>
+        <MenuManager />
+      </main>
+
+      <AIAssistant />
+    </div>
+  );
+};
+
+export default Menus;
