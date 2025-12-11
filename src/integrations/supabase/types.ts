@@ -140,6 +140,41 @@ export type Database = {
           },
         ]
       }
+      event_analysis: {
+        Row: {
+          ai_generated: boolean | null
+          analysis_type: string
+          content: Json
+          created_at: string
+          event_id: string
+          id: string
+        }
+        Insert: {
+          ai_generated?: boolean | null
+          analysis_type: string
+          content: Json
+          created_at?: string
+          event_id: string
+          id?: string
+        }
+        Update: {
+          ai_generated?: boolean | null
+          analysis_type?: string
+          content?: Json
+          created_at?: string
+          event_id?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_analysis_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       event_features: {
         Row: {
           beer_corner: boolean | null
@@ -433,6 +468,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      menus: {
+        Row: {
+          created_at: string
+          description: string | null
+          file_type: string | null
+          file_url: string | null
+          id: string
+          is_active: boolean | null
+          items: Json | null
+          menu_type: string
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          file_type?: string | null
+          file_url?: string | null
+          id?: string
+          is_active?: boolean | null
+          items?: Json | null
+          menu_type?: string
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          file_type?: string | null
+          file_url?: string | null
+          id?: string
+          is_active?: boolean | null
+          items?: Json | null
+          menu_type?: string
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       other_requirements: {
         Row: {
