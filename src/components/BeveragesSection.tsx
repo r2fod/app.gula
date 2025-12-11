@@ -23,37 +23,49 @@ interface Beverage {
   is_extra?: boolean;
 }
 
-// Bebidas predefinidas con ratio por PAX (basado en el Excel)
+// Bebidas predefinidas con ratio por PAX y precios sin IVA (del Excel)
 const DEFAULT_BEVERAGES: { category: string; item_name: string; ratio_per_pax: number; unit_price: number }[] = [
-  // Aperitivo/Comida
-  { category: 'aperitivo', item_name: 'Botella vino blanco', ratio_per_pax: 0.28, unit_price: 6.50 },
-  { category: 'aperitivo', item_name: 'Botella vino tinto', ratio_per_pax: 0.18, unit_price: 6.50 },
-  { category: 'aperitivo', item_name: 'Agua Solán de Cabras 1.5L', ratio_per_pax: 0.44, unit_price: 1.20 },
-  { category: 'aperitivo', item_name: 'Botellín cerveza', ratio_per_pax: 2.80, unit_price: 1.00 },
-  { category: 'aperitivo', item_name: 'Cerveza sin gluten', ratio_per_pax: 0.05, unit_price: 1.50 },
-  { category: 'aperitivo', item_name: 'Cerveza 0,0', ratio_per_pax: 0.17, unit_price: 1.20 },
-  { category: 'aperitivo', item_name: 'Aquarius', ratio_per_pax: 0.17, unit_price: 1.00 },
-  { category: 'aperitivo', item_name: 'Nestea', ratio_per_pax: 0.17, unit_price: 1.00 },
-  { category: 'aperitivo', item_name: 'Vermut', ratio_per_pax: 0.05, unit_price: 8.00 },
-  { category: 'aperitivo', item_name: 'Agua con gas', ratio_per_pax: 0.18, unit_price: 1.50 },
-  // Copas (Barra Libre)
-  { category: 'copas', item_name: 'Ginebra', ratio_per_pax: 0.10, unit_price: 12.00 },
-  { category: 'copas', item_name: 'Ron Barceló', ratio_per_pax: 0.05, unit_price: 14.00 },
-  { category: 'copas', item_name: 'Ballentines', ratio_per_pax: 0.05, unit_price: 15.00 },
-  { category: 'copas', item_name: 'Vodka', ratio_per_pax: 0.02, unit_price: 12.00 },
-  { category: 'copas', item_name: 'Cazalla', ratio_per_pax: 0.01, unit_price: 8.00 },
-  { category: 'copas', item_name: 'Tequila', ratio_per_pax: 0.02, unit_price: 14.00 },
-  { category: 'copas', item_name: 'Tequila rosa', ratio_per_pax: 0.02, unit_price: 14.00 },
-  { category: 'copas', item_name: 'Baileys', ratio_per_pax: 0.02, unit_price: 16.00 },
-  { category: 'copas', item_name: 'Mistela', ratio_per_pax: 0.01, unit_price: 6.00 },
-  { category: 'copas', item_name: 'Tónica', ratio_per_pax: 0.21, unit_price: 0.80 },
-  // Refrescos
-  { category: 'refrescos', item_name: 'Coca-Cola', ratio_per_pax: 0.86, unit_price: 0.70 },
-  { category: 'refrescos', item_name: 'Coca-Cola Zero', ratio_per_pax: 0.65, unit_price: 0.70 },
-  { category: 'refrescos', item_name: 'Fanta naranja', ratio_per_pax: 0.52, unit_price: 0.70 },
-  { category: 'refrescos', item_name: 'Fanta limón', ratio_per_pax: 0.52, unit_price: 0.70 },
-  { category: 'refrescos', item_name: 'Seven Up', ratio_per_pax: 0.17, unit_price: 0.70 },
-  { category: 'refrescos', item_name: 'Limones', ratio_per_pax: 0.36, unit_price: 0.30 },
+  // APERITIVO/COMIDA
+  { category: 'aperitivo', item_name: 'Nebla Verdejo', ratio_per_pax: 0.40, unit_price: 5.22 },
+  { category: 'aperitivo', item_name: 'Raiza Rioja Tinto', ratio_per_pax: 0.29, unit_price: 4.33 },
+  { category: 'aperitivo', item_name: 'Botella Cava', ratio_per_pax: 0.13, unit_price: 3.59 },
+  { category: 'aperitivo', item_name: 'Agua Solán de Cabras 1.5L', ratio_per_pax: 1.00, unit_price: 0.65 },
+  { category: 'aperitivo', item_name: 'Botellín cerveza', ratio_per_pax: 3.50, unit_price: 0.49 },
+  { category: 'aperitivo', item_name: 'Coca-Cola', ratio_per_pax: 0.25, unit_price: 0.569 },
+  { category: 'aperitivo', item_name: 'Coca-Cola Zero', ratio_per_pax: 0.25, unit_price: 0.5629 },
+  { category: 'aperitivo', item_name: 'Aquarius', ratio_per_pax: 0.30, unit_price: 0.6629 },
+  { category: 'aperitivo', item_name: 'Nestea', ratio_per_pax: 0.20, unit_price: 0.715 },
+  { category: 'aperitivo', item_name: 'Fanta Naranja', ratio_per_pax: 0.30, unit_price: 0.528 },
+  { category: 'aperitivo', item_name: 'Fanta Limón', ratio_per_pax: 0.30, unit_price: 0.528 },
+  { category: 'aperitivo', item_name: 'Vermut Izaguirre Rojo', ratio_per_pax: 0.07, unit_price: 6.30 },
+  { category: 'aperitivo', item_name: 'Vermut Izaguirre Blanco', ratio_per_pax: 0.03, unit_price: 6.30 },
+  { category: 'aperitivo', item_name: 'Agua con gas', ratio_per_pax: 0.25, unit_price: 0.789 },
+  { category: 'aperitivo', item_name: 'Cerveza 0,0', ratio_per_pax: 0.15, unit_price: 0.89 },
+  { category: 'aperitivo', item_name: 'Cerveza sin gluten', ratio_per_pax: 0.05, unit_price: 1.14 },
+  // BARRA COPAS - Licores
+  { category: 'copas', item_name: 'Ginebra Tanqueray', ratio_per_pax: 0.08, unit_price: 12.18 },
+  { category: 'copas', item_name: 'Ginebra Seagrams', ratio_per_pax: 0.08, unit_price: 13.05 },
+  { category: 'copas', item_name: 'Ginebra Larios', ratio_per_pax: 0.02, unit_price: 10.00 },
+  { category: 'copas', item_name: 'Puerto de Indias', ratio_per_pax: 0.04, unit_price: 13.00 },
+  { category: 'copas', item_name: 'Ron Barceló', ratio_per_pax: 0.06, unit_price: 12.00 },
+  { category: 'copas', item_name: 'Ron Brugal', ratio_per_pax: 0.06, unit_price: 11.15 },
+  { category: 'copas', item_name: 'Ballentines', ratio_per_pax: 0.07, unit_price: 11.20 },
+  { category: 'copas', item_name: 'Vodka', ratio_per_pax: 0.04, unit_price: 10.90 },
+  { category: 'copas', item_name: 'Tequila', ratio_per_pax: 0.01, unit_price: 12.87 },
+  { category: 'copas', item_name: 'Tequila Rosa', ratio_per_pax: 0.02, unit_price: 6.70 },
+  { category: 'copas', item_name: 'Cazalla', ratio_per_pax: 0.01, unit_price: 8.45 },
+  { category: 'copas', item_name: 'Baileys', ratio_per_pax: 0.01, unit_price: 10.20 },
+  { category: 'copas', item_name: 'Mistela', ratio_per_pax: 0.01, unit_price: 3.12 },
+  { category: 'copas', item_name: 'Tónica', ratio_per_pax: 0.33, unit_price: 2.01 },
+  { category: 'copas', item_name: 'Hielo', ratio_per_pax: 0.67, unit_price: 0.763 },
+  // REFRESCOS (Barra Copas)
+  { category: 'refrescos', item_name: 'Seven Up Lata', ratio_per_pax: 0.25, unit_price: 0.972 },
+  { category: 'refrescos', item_name: 'Agua con gas (Copas)', ratio_per_pax: 0.25, unit_price: 0.80 },
+  { category: 'refrescos', item_name: 'Coca-Cola (Copas)', ratio_per_pax: 1.20, unit_price: 0.569 },
+  { category: 'refrescos', item_name: 'Coca-Cola Zero (Copas)', ratio_per_pax: 1.00, unit_price: 0.5629 },
+  { category: 'refrescos', item_name: 'Fanta Naranja (Copas)', ratio_per_pax: 0.75, unit_price: 0.528 },
+  { category: 'refrescos', item_name: 'Fanta Limón (Copas)', ratio_per_pax: 0.75, unit_price: 0.528 },
+  { category: 'refrescos', item_name: 'Limones', ratio_per_pax: 0.05, unit_price: 2.50 },
 ];
 
 const CATEGORIES = [
