@@ -44,10 +44,7 @@ export default function ProfileSettings() {
   };
 
   const handleAutoFill = async () => {
-    if (!websiteUrl) {
-      toast({ title: "Introduce una URL primero", variant: "destructive" });
-      return;
-    }
+    if (!websiteUrl) return;
 
     try {
       setLoading(true);
@@ -61,10 +58,10 @@ export default function ProfileSettings() {
         // Si falla, usar lo que haya escrito
       }
 
-      // 1. Obtener Logo usando Google Favicon Service (muy fiable y sin CORS)
+      // 1. Obtener Logo usando Google Favicon Service
       const googleFaviconUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=128`;
 
-      // 2. Inferir nombre desde el dominio (fallback simple)
+      // 2. Inferir nombre desde el dominio
       const inferredName = domain
         .replace('www.', '')
         .split('.')[0]
@@ -72,12 +69,14 @@ export default function ProfileSettings() {
         .map(word => word.charAt(0).toUpperCase() + word.slice(1))
         .join(' ');
 
-      setLogoUrl(googleFaviconUrl);
-      if (!companyName) setCompanyName(inferredName); // Solo rellenar si está vacío
+      // Actualizar estado siempre para que el usuario vea el resultado
+      // Usamos un timestamp para forzar recarga de la imagen si la URL es igual
+      setLogoUrl(`${googleFaviconUrl}&t=${Date.now()}`);
+      setCompanyName(inferredName);
 
       toast({
-        title: "✨ Datos autocompletados",
-        description: "Se ha obtenido el logo y nombre sugerido desde la web."
+        title: "✨ Datos actualizados",
+        description: `Nombre: ${inferredName}`
       });
     } catch (error) {
       console.error("Error auto-filling:", error);
@@ -178,6 +177,7 @@ export default function ProfileSettings() {
                   className="pl-9"
                   value={websiteUrl}
                   onChange={(e) => setWebsiteUrl(e.target.value)}
+                  onBlur={handleAutoFill}
                 />
               </div>
               <Button size="icon" variant="secondary" onClick={handleAutoFill} disabled={loading || !websiteUrl} title="Obtener datos automáticamente">
