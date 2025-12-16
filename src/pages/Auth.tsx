@@ -1,29 +1,38 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { signIn, signUp } from "@/lib/supabase";
+import { signIn, signUp, resetPassword, updatePassword, verifyRegistrationCode } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { Calendar, Loader2 } from "lucide-react";
+import { Calendar, Loader2, KeyRound } from "lucide-react";
 
 const Auth = () => {
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
   const [fullName, setFullName] = useState("");
+  const [registrationCode, setRegistrationCode] = useState("");
+  const [showResetForm, setShowResetForm] = useState(false);
+  const [isResettingPassword, setIsResettingPassword] = useState(false);
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { toast } = useToast();
 
   useEffect(() => {
-    if (user) {
+    if (user && !searchParams.get('reset')) {
       navigate("/events");
     }
-  }, [user, navigate]);
+    // Check if this is a password reset callback
+    if (searchParams.get('reset') === 'true') {
+      setIsResettingPassword(true);
+    }
+  }, [user, navigate, searchParams]);
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,6 +71,28 @@ const Auth = () => {
       return;
     }
 
+    if (!registrationCode.trim()) {
+      toast({
+        title: "Error",
+        description: "Por favor ingresa el código de registro",
+        variant: "destructive",
+      });
+      setLoading(false);
+      return;
+    }
+
+    // Verify registration code
+    const isValidCode = await verifyRegistrationCode(registrationCode);
+    if (!isValidCode) {
+      toast({
+        title: "Código inválido",
+        description: "El código de registro no es válido",
+        variant: "destructive",
+      });
+      setLoading(false);
+      return;
+    }
+
     const { error } = await signUp(email, password, fullName);
 
     if (error) {
@@ -80,6 +111,153 @@ const Auth = () => {
 
     setLoading(false);
   };
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    const { error } = await resetPassword(email);
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Email enviado",
+        description: "Revisa tu correo para restablecer tu contraseña",
+      });
+      setShowResetForm(false);
+    }
+
+    setLoading(false);
+  };
+
+  const handleUpdatePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    if (newPassword.length < 6) {
+      toast({
+        title: "Error",
+        description: "La contraseña debe tener al menos 6 caracteres",
+        variant: "destructive",
+      });
+      setLoading(false);
+      return;
+    }
+
+    const { error } = await updatePassword(newPassword);
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Contraseña actualizada",
+        description: "Tu contraseña ha sido actualizada correctamente",
+      });
+      setIsResettingPassword(false);
+      navigate("/events");
+    }
+
+    setLoading(false);
+  };
+
+  // Password reset update form
+  if (isResettingPassword) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-section-info to-section-menu p-4">
+        <Card className="w-full max-w-md p-8 shadow-medium">
+          <div className="flex items-center justify-center mb-8">
+            <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center">
+              <KeyRound className="w-6 h-6 text-primary-foreground" />
+            </div>
+          </div>
+          
+          <h1 className="text-2xl font-bold text-center mb-2">Nueva Contraseña</h1>
+          <p className="text-center text-muted-foreground mb-8">
+            Ingresa tu nueva contraseña
+          </p>
+
+          <form onSubmit={handleUpdatePassword} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="new-password">Nueva Contraseña</Label>
+              <Input
+                id="new-password"
+                type="password"
+                placeholder="••••••••"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                required
+                disabled={loading}
+                minLength={6}
+              />
+            </div>
+
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Actualizar Contraseña
+            </Button>
+          </form>
+        </Card>
+      </div>
+    );
+  }
+
+  // Password reset request form
+  if (showResetForm) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-section-info to-section-menu p-4">
+        <Card className="w-full max-w-md p-8 shadow-medium">
+          <div className="flex items-center justify-center mb-8">
+            <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center">
+              <KeyRound className="w-6 h-6 text-primary-foreground" />
+            </div>
+          </div>
+          
+          <h1 className="text-2xl font-bold text-center mb-2">Recuperar Contraseña</h1>
+          <p className="text-center text-muted-foreground mb-8">
+            Te enviaremos un enlace para restablecer tu contraseña
+          </p>
+
+          <form onSubmit={handleResetPassword} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="reset-email">Email</Label>
+              <Input
+                id="reset-email"
+                type="email"
+                placeholder="tu@email.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                disabled={loading}
+              />
+            </div>
+
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Enviar enlace de recuperación
+            </Button>
+
+            <Button
+              type="button"
+              variant="ghost"
+              className="w-full"
+              onClick={() => setShowResetForm(false)}
+            >
+              Volver al inicio de sesión
+            </Button>
+          </form>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-section-info to-section-menu p-4">
@@ -133,6 +311,15 @@ const Auth = () => {
                 {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Iniciar Sesión
               </Button>
+
+              <Button
+                type="button"
+                variant="link"
+                className="w-full text-sm"
+                onClick={() => setShowResetForm(true)}
+              >
+                ¿Olvidaste tu contraseña?
+              </Button>
             </form>
           </TabsContent>
 
@@ -176,6 +363,22 @@ const Auth = () => {
                   disabled={loading}
                   minLength={6}
                 />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="signup-code">Código de Registro</Label>
+                <Input
+                  id="signup-code"
+                  type="text"
+                  placeholder="Introduce el código"
+                  value={registrationCode}
+                  onChange={(e) => setRegistrationCode(e.target.value)}
+                  required
+                  disabled={loading}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Solicita el código a tu administrador
+                </p>
               </div>
 
               <Button type="submit" className="w-full" disabled={loading}>

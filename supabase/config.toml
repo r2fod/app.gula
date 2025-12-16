@@ -2,3 +2,6 @@ project_id = "wfkuclqzcwsdysxqhzmi"
 
 [functions.ai-assistant]
 verify_jwt = false
+
+[functions.verify-registration-code]
+verify_jwt = false
