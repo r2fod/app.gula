@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Settings, Save, Upload, Building2, Globe, Wand2 } from "lucide-react";
+import { Settings, Save, Upload, Building2, Globe, Wand2, X } from "lucide-react";
 
 export default function ProfileSettings() {
   const { user } = useAuth();
@@ -28,6 +28,7 @@ export default function ProfileSettings() {
   const fetchProfile = async () => {
     if (!user) return;
 
+    // Cast to any to avoid TS error if website column doesn't exist in types yet
     const { data, error } = await supabase
       .from("profiles")
       .select("company_name, avatar_url, website")
@@ -35,9 +36,10 @@ export default function ProfileSettings() {
       .single();
 
     if (!error && data) {
-      setCompanyName(data.company_name || "");
-      setLogoUrl(data.avatar_url || "");
-      setWebsiteUrl(data.website || "");
+      const profile = data as any;
+      setCompanyName(profile.company_name || "");
+      setLogoUrl(profile.avatar_url || "");
+      setWebsiteUrl(profile.website || "");
     }
   };
 
