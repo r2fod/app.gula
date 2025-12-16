@@ -16,7 +16,6 @@ interface BeveragesSectionProps {
 interface Beverage {
   id?: string;
   category: string;
-  subtype?: string;
   item_name: string;
   quantity: number;
   unit_price: number;
@@ -26,48 +25,48 @@ interface Beverage {
 
 // Bebidas predefinidas con ratio por PAX y precios sin IVA (del Excel)
 // Los ratios de copas y refrescos son por hora de barra libre
-const DEFAULT_BEVERAGES: { category: string; subtype: string; item_name: string; ratio_per_pax: number; unit_price: number; per_bar_hour?: boolean }[] = [
+const DEFAULT_BEVERAGES: { category: string; item_name: string; ratio_per_pax: number; unit_price: number; per_bar_hour?: boolean }[] = [
   // APERITIVO/COMIDA - estos NO dependen de horas de barra
-  { category: 'aperitivo', subtype: 'Vinos', item_name: 'Nebla Verdejo', ratio_per_pax: 0.40, unit_price: 5.22 },
-  { category: 'aperitivo', subtype: 'Vinos', item_name: 'Raiza Rioja Tinto', ratio_per_pax: 0.29, unit_price: 4.33 },
-  { category: 'aperitivo', subtype: 'Vinos', item_name: 'Botella Cava', ratio_per_pax: 0.13, unit_price: 3.59 },
-  { category: 'aperitivo', subtype: 'Agua', item_name: 'Agua Solán de Cabras 1.5L', ratio_per_pax: 1.00, unit_price: 0.65 },
-  { category: 'aperitivo', subtype: 'Agua', item_name: 'Agua con gas', ratio_per_pax: 0.25, unit_price: 0.789 },
-  { category: 'aperitivo', subtype: 'Cervezas', item_name: 'Botellín cerveza', ratio_per_pax: 3.50, unit_price: 0.49 },
-  { category: 'aperitivo', subtype: 'Cervezas', item_name: 'Cerveza 0,0', ratio_per_pax: 0.15, unit_price: 0.89 },
-  { category: 'aperitivo', subtype: 'Cervezas', item_name: 'Cerveza sin gluten', ratio_per_pax: 0.05, unit_price: 1.14 },
-  { category: 'aperitivo', subtype: 'Refrescos', item_name: 'Coca-Cola', ratio_per_pax: 0.25, unit_price: 0.569 },
-  { category: 'aperitivo', subtype: 'Refrescos', item_name: 'Coca-Cola Zero', ratio_per_pax: 0.25, unit_price: 0.5629 },
-  { category: 'aperitivo', subtype: 'Refrescos', item_name: 'Aquarius', ratio_per_pax: 0.30, unit_price: 0.6629 },
-  { category: 'aperitivo', subtype: 'Refrescos', item_name: 'Nestea', ratio_per_pax: 0.20, unit_price: 0.715 },
-  { category: 'aperitivo', subtype: 'Refrescos', item_name: 'Fanta Naranja', ratio_per_pax: 0.30, unit_price: 0.528 },
-  { category: 'aperitivo', subtype: 'Refrescos', item_name: 'Fanta Limón', ratio_per_pax: 0.30, unit_price: 0.528 },
-  { category: 'aperitivo', subtype: 'Vermut', item_name: 'Vermut Izaguirre Rojo', ratio_per_pax: 0.07, unit_price: 6.30 },
-  { category: 'aperitivo', subtype: 'Vermut', item_name: 'Vermut Izaguirre Blanco', ratio_per_pax: 0.03, unit_price: 6.30 },
-  // BARRA COPAS - Licores (estos SÍ dependen de horas de barra) - Ajustados a estándar
-  { category: 'copas', subtype: 'Ginebra', item_name: 'Ginebra Tanqueray', ratio_per_pax: 0.035, unit_price: 12.18, per_bar_hour: true },
-  { category: 'copas', subtype: 'Ginebra', item_name: 'Ginebra Seagrams', ratio_per_pax: 0.035, unit_price: 13.05, per_bar_hour: true },
-  { category: 'copas', subtype: 'Ginebra', item_name: 'Ginebra Larios', ratio_per_pax: 0.01, unit_price: 10.00, per_bar_hour: true },
-  { category: 'copas', subtype: 'Ginebra', item_name: 'Puerto de Indias', ratio_per_pax: 0.015, unit_price: 13.00, per_bar_hour: true },
-  { category: 'copas', subtype: 'Ron', item_name: 'Ron Barceló', ratio_per_pax: 0.03, unit_price: 12.00, per_bar_hour: true },
-  { category: 'copas', subtype: 'Ron', item_name: 'Ron Brugal', ratio_per_pax: 0.03, unit_price: 11.15, per_bar_hour: true },
-  { category: 'copas', subtype: 'Whisky', item_name: 'Ballentines', ratio_per_pax: 0.035, unit_price: 11.20, per_bar_hour: true },
-  { category: 'copas', subtype: 'Vodka', item_name: 'Vodka', ratio_per_pax: 0.02, unit_price: 10.90, per_bar_hour: true },
-  { category: 'copas', subtype: 'Tequila', item_name: 'Tequila', ratio_per_pax: 0.005, unit_price: 12.87, per_bar_hour: true },
-  { category: 'copas', subtype: 'Tequila', item_name: 'Tequila Rosa', ratio_per_pax: 0.01, unit_price: 6.70, per_bar_hour: true },
-  { category: 'copas', subtype: 'Otros Licores', item_name: 'Cazalla', ratio_per_pax: 0.005, unit_price: 8.45, per_bar_hour: true },
-  { category: 'copas', subtype: 'Otros Licores', item_name: 'Baileys', ratio_per_pax: 0.005, unit_price: 10.20, per_bar_hour: true },
-  { category: 'copas', subtype: 'Otros Licores', item_name: 'Mistela', ratio_per_pax: 0.005, unit_price: 3.12, per_bar_hour: true },
-  { category: 'copas', subtype: 'Mixers', item_name: 'Tónica', ratio_per_pax: 0.28, unit_price: 2.01, per_bar_hour: true },
-  { category: 'copas', subtype: 'Mixers', item_name: 'Hielo', ratio_per_pax: 0.335, unit_price: 0.763, per_bar_hour: true },
-  // REFRESCOS (Barra Copas) - Ajustados a estándar
-  { category: 'refrescos', subtype: 'Refrescos', item_name: 'Seven Up Lata', ratio_per_pax: 0.125, unit_price: 0.972, per_bar_hour: true },
-  { category: 'refrescos', subtype: 'Refrescos', item_name: 'Agua con gas (Copas)', ratio_per_pax: 0.125, unit_price: 0.80, per_bar_hour: true },
-  { category: 'refrescos', subtype: 'Refrescos', item_name: 'Coca-Cola (Copas)', ratio_per_pax: 0.35, unit_price: 0.569, per_bar_hour: true },
-  { category: 'refrescos', subtype: 'Refrescos', item_name: 'Coca-Cola Zero (Copas)', ratio_per_pax: 0.30, unit_price: 0.5629, per_bar_hour: true },
-  { category: 'refrescos', subtype: 'Refrescos', item_name: 'Fanta Naranja (Copas)', ratio_per_pax: 0.25, unit_price: 0.528, per_bar_hour: true },
-  { category: 'refrescos', subtype: 'Refrescos', item_name: 'Fanta Limón (Copas)', ratio_per_pax: 0.25, unit_price: 0.528, per_bar_hour: true },
-  { category: 'refrescos', subtype: 'Otros', item_name: 'Limones', ratio_per_pax: 0.025, unit_price: 2.50, per_bar_hour: true },
+  { category: 'aperitivo', item_name: 'Nebla Verdejo', ratio_per_pax: 0.40, unit_price: 5.22 },
+  { category: 'aperitivo', item_name: 'Raiza Rioja Tinto', ratio_per_pax: 0.29, unit_price: 4.33 },
+  { category: 'aperitivo', item_name: 'Botella Cava', ratio_per_pax: 0.13, unit_price: 3.59 },
+  { category: 'aperitivo', item_name: 'Agua Solán de Cabras 1.5L', ratio_per_pax: 1.00, unit_price: 0.65 },
+  { category: 'aperitivo', item_name: 'Agua con gas', ratio_per_pax: 0.25, unit_price: 0.789 },
+  { category: 'aperitivo', item_name: 'Botellín cerveza', ratio_per_pax: 3.50, unit_price: 0.49 },
+  { category: 'aperitivo', item_name: 'Cerveza 0,0', ratio_per_pax: 0.15, unit_price: 0.89 },
+  { category: 'aperitivo', item_name: 'Cerveza sin gluten', ratio_per_pax: 0.05, unit_price: 1.14 },
+  { category: 'aperitivo', item_name: 'Coca-Cola', ratio_per_pax: 0.25, unit_price: 0.569 },
+  { category: 'aperitivo', item_name: 'Coca-Cola Zero', ratio_per_pax: 0.25, unit_price: 0.5629 },
+  { category: 'aperitivo', item_name: 'Aquarius', ratio_per_pax: 0.30, unit_price: 0.6629 },
+  { category: 'aperitivo', item_name: 'Nestea', ratio_per_pax: 0.20, unit_price: 0.715 },
+  { category: 'aperitivo', item_name: 'Fanta Naranja', ratio_per_pax: 0.30, unit_price: 0.528 },
+  { category: 'aperitivo', item_name: 'Fanta Limón', ratio_per_pax: 0.30, unit_price: 0.528 },
+  { category: 'aperitivo', item_name: 'Vermut Izaguirre Rojo', ratio_per_pax: 0.07, unit_price: 6.30 },
+  { category: 'aperitivo', item_name: 'Vermut Izaguirre Blanco', ratio_per_pax: 0.03, unit_price: 6.30 },
+  // BARRA COPAS - Licores (estos SÍ dependen de horas de barra)
+  { category: 'copas', item_name: 'Ginebra Tanqueray', ratio_per_pax: 0.035, unit_price: 12.18, per_bar_hour: true },
+  { category: 'copas', item_name: 'Ginebra Seagrams', ratio_per_pax: 0.035, unit_price: 13.05, per_bar_hour: true },
+  { category: 'copas', item_name: 'Ginebra Larios', ratio_per_pax: 0.01, unit_price: 10.00, per_bar_hour: true },
+  { category: 'copas', item_name: 'Puerto de Indias', ratio_per_pax: 0.015, unit_price: 13.00, per_bar_hour: true },
+  { category: 'copas', item_name: 'Ron Barceló', ratio_per_pax: 0.03, unit_price: 12.00, per_bar_hour: true },
+  { category: 'copas', item_name: 'Ron Brugal', ratio_per_pax: 0.03, unit_price: 11.15, per_bar_hour: true },
+  { category: 'copas', item_name: 'Ballentines', ratio_per_pax: 0.035, unit_price: 11.20, per_bar_hour: true },
+  { category: 'copas', item_name: 'Vodka', ratio_per_pax: 0.02, unit_price: 10.90, per_bar_hour: true },
+  { category: 'copas', item_name: 'Tequila', ratio_per_pax: 0.005, unit_price: 12.87, per_bar_hour: true },
+  { category: 'copas', item_name: 'Tequila Rosa', ratio_per_pax: 0.01, unit_price: 6.70, per_bar_hour: true },
+  { category: 'copas', item_name: 'Cazalla', ratio_per_pax: 0.005, unit_price: 8.45, per_bar_hour: true },
+  { category: 'copas', item_name: 'Baileys', ratio_per_pax: 0.005, unit_price: 10.20, per_bar_hour: true },
+  { category: 'copas', item_name: 'Mistela', ratio_per_pax: 0.005, unit_price: 3.12, per_bar_hour: true },
+  { category: 'copas', item_name: 'Tónica', ratio_per_pax: 0.28, unit_price: 2.01, per_bar_hour: true },
+  { category: 'copas', item_name: 'Hielo', ratio_per_pax: 0.335, unit_price: 0.763, per_bar_hour: true },
+  // REFRESCOS (Barra Copas)
+  { category: 'refrescos', item_name: 'Seven Up Lata', ratio_per_pax: 0.125, unit_price: 0.972, per_bar_hour: true },
+  { category: 'refrescos', item_name: 'Agua con gas (Copas)', ratio_per_pax: 0.125, unit_price: 0.80, per_bar_hour: true },
+  { category: 'refrescos', item_name: 'Coca-Cola (Copas)', ratio_per_pax: 0.35, unit_price: 0.569, per_bar_hour: true },
+  { category: 'refrescos', item_name: 'Coca-Cola Zero (Copas)', ratio_per_pax: 0.30, unit_price: 0.5629, per_bar_hour: true },
+  { category: 'refrescos', item_name: 'Fanta Naranja (Copas)', ratio_per_pax: 0.25, unit_price: 0.528, per_bar_hour: true },
+  { category: 'refrescos', item_name: 'Fanta Limón (Copas)', ratio_per_pax: 0.25, unit_price: 0.528, per_bar_hour: true },
+  { category: 'refrescos', item_name: 'Limones', ratio_per_pax: 0.025, unit_price: 2.50, per_bar_hour: true },
 ];
 
 const CATEGORIES = [
@@ -76,16 +75,7 @@ const CATEGORIES = [
   { key: 'refrescos', label: 'Refrescos', icon: Beer },
 ];
 
-// Función auxiliar para inferir subtype desde item_name si no existe en BD
-const inferSubtype = (item: Beverage): string => {
-  if (item.subtype) return item.subtype;
 
-  const defaultItem = DEFAULT_BEVERAGES.find(d =>
-    d.item_name === item.item_name && d.category === item.category
-  );
-
-  return defaultItem?.subtype || 'Sin categoría';
-};
 
 export default function BeveragesSection({ eventId, totalGuests }: BeveragesSectionProps) {
   const { toast } = useToast();
@@ -443,7 +433,6 @@ export default function BeveragesSection({ eventId, totalGuests }: BeveragesSect
   const generateDefaultBeverages = () => {
     const defaultItems: Beverage[] = DEFAULT_BEVERAGES.map(item => ({
       category: item.category,
-      subtype: item.subtype,
       item_name: item.item_name,
       quantity: calculateQuantity(item),
       unit_price: item.unit_price,
@@ -520,7 +509,7 @@ export default function BeveragesSection({ eventId, totalGuests }: BeveragesSect
   };
 
   const addItem = (category: string) => {
-    setFormData([...formData, { category, subtype: "", item_name: "", quantity: 0, unit_price: 0, is_extra: true }]);
+    setFormData([...formData, { category, item_name: "", quantity: 0, unit_price: 0, is_extra: true }]);
   };
 
   const removeItem = (index: number) => {
@@ -562,95 +551,79 @@ export default function BeveragesSection({ eventId, totalGuests }: BeveragesSect
       );
     }
 
-    // Agrupar por subtipo (inferir si no existe)
-    const groupedBySubtype = items.reduce((acc, item) => {
-      const subtype = inferSubtype(item);
-      if (!acc[subtype]) acc[subtype] = [];
-      acc[subtype].push(item);
-      return acc;
-    }, {} as Record<string, typeof items>);
-
+    // Agrupar items ya no es necesario, mostrar lista plana
     return (
-      <div className="space-y-6">
-        {Object.entries(groupedBySubtype).map(([subtype, subtypeItems]) => (
-          <div key={subtype} className="space-y-2">
-            {/* Subtipo Header */}
-            <h3 className="text-sm font-semibold text-primary border-b border-primary/30 pb-1">
-              {subtype}
-            </h3>
-
-            {/* Header de columnas (solo en modo edición) */}
-            {isEditing && (
-              <div className="grid grid-cols-12 gap-2 text-xs text-muted-foreground font-medium pb-2 border-b border-border">
-                <span className="col-span-4">Nombre</span>
-                <span className="col-span-2">Cantidad</span>
-                <span className="col-span-2">€/ud</span>
-                <span className="col-span-2">Total</span>
-                <span className="col-span-1">Extra</span>
-                <span className="col-span-1"></span>
-              </div>
-            )}
-
-            {/* Items del subtipo */}
-            {subtypeItems.map((item, idx) => {
-              const globalIndex = formData.findIndex(b => b === item);
-              const total = item.quantity * item.unit_price;
-
-              return isEditing ? (
-                <div key={idx} className="grid grid-cols-12 gap-2 items-center">
-                  <Input
-                    className="col-span-4 h-8 text-sm"
-                    placeholder="Nombre"
-                    value={item.item_name}
-                    onChange={(e) => updateItem(globalIndex, "item_name", e.target.value)}
-                  />
-                  <Input
-                    className="col-span-2 h-8 text-sm"
-                    type="number"
-                    placeholder="Cant."
-                    value={item.quantity || ""}
-                    onChange={(e) => updateItem(globalIndex, "quantity", parseInt(e.target.value) || 0)}
-                  />
-                  <Input
-                    className="col-span-2 h-8 text-sm"
-                    type="number"
-                    step="0.01"
-                    placeholder="€/ud"
-                    value={item.unit_price || ""}
-                    onChange={(e) => updateItem(globalIndex, "unit_price", parseFloat(e.target.value) || 0)}
-                  />
-                  <span className="col-span-2 text-sm font-medium">{total.toFixed(2)}€</span>
-                  <div className="col-span-1 flex justify-center">
-                    <Checkbox
-                      checked={item.is_extra || false}
-                      onCheckedChange={(checked) => updateItem(globalIndex, "is_extra", checked)}
-                    />
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="col-span-1 h-8 w-8"
-                    onClick={() => removeItem(globalIndex)}
-                  >
-                    <Trash2 className="h-4 w-4 text-destructive" />
-                  </Button>
-                </div>
-              ) : (
-                <div key={idx} className={`flex justify-between items-center py-2 border-b border-border last:border-0 ${item.is_extra ? 'bg-primary/5 px-2 rounded' : ''}`}>
-                  <span className="font-medium text-sm">
-                    {item.item_name}
-                    {item.is_extra && <span className="ml-2 text-xs text-primary">(Extra)</span>}
-                  </span>
-                  <div className="flex gap-4 text-sm">
-                    <span className="w-16 text-right">{item.quantity} ud</span>
-                    <span className="w-16 text-right text-muted-foreground">{item.unit_price.toFixed(2)}€/ud</span>
-                    <span className="w-20 text-right font-semibold">{total.toFixed(2)}€</span>
-                  </div>
-                </div>
-              );
-            })}
+      <div className="space-y-4">
+        {/* Header de columnas (solo en modo edición) */}
+        {isEditing && items.length > 0 && (
+          <div className="grid grid-cols-12 gap-2 text-xs text-muted-foreground font-medium pb-2 border-b border-border">
+            <span className="col-span-4">Nombre</span>
+            <span className="col-span-2">Cantidad</span>
+            <span className="col-span-2">€/ud</span>
+            <span className="col-span-2">Total</span>
+            <span className="col-span-1">Extra</span>
+            <span className="col-span-1"></span>
           </div>
-        ))}
+        )}
+
+        {/* Items */}
+        {items.map((item, idx) => {
+          const globalIndex = formData.findIndex(b => b === item);
+          const total = item.quantity * item.unit_price;
+
+          return isEditing ? (
+            <div key={idx} className="grid grid-cols-12 gap-2 items-center">
+              <Input
+                className="col-span-4 h-8 text-sm"
+                placeholder="Nombre"
+                value={item.item_name}
+                onChange={(e) => updateItem(globalIndex, "item_name", e.target.value)}
+              />
+              <Input
+                className="col-span-2 h-8 text-sm"
+                type="number"
+                placeholder="Cant."
+                value={item.quantity || ""}
+                onChange={(e) => updateItem(globalIndex, "quantity", parseInt(e.target.value) || 0)}
+              />
+              <Input
+                className="col-span-2 h-8 text-sm"
+                type="number"
+                step="0.01"
+                placeholder="€/ud"
+                value={item.unit_price || ""}
+                onChange={(e) => updateItem(globalIndex, "unit_price", parseFloat(e.target.value) || 0)}
+              />
+              <span className="col-span-2 text-sm font-medium">{total.toFixed(2)}€</span>
+              <div className="col-span-1 flex justify-center">
+                <Checkbox
+                  checked={item.is_extra || false}
+                  onCheckedChange={(checked) => updateItem(globalIndex, "is_extra", checked)}
+                />
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="col-span-1 h-8 w-8"
+                onClick={() => removeItem(globalIndex)}
+              >
+                <Trash2 className="h-4 w-4 text-destructive" />
+              </Button>
+            </div>
+          ) : (
+            <div key={idx} className={`flex justify-between items-center py-2 border-b border-border last:border-0 ${item.is_extra ? 'bg-primary/5 px-2 rounded' : ''}`}>
+              <span className="font-medium text-sm">
+                {item.item_name}
+                {item.is_extra && <span className="ml-2 text-xs text-primary">(Extra)</span>}
+              </span>
+              <div className="flex gap-4 text-sm">
+                <span className="w-16 text-right">{item.quantity} ud</span>
+                <span className="w-16 text-right text-muted-foreground">{item.unit_price.toFixed(2)}€/ud</span>
+                <span className="w-20 text-right font-semibold">{total.toFixed(2)}€</span>
+              </div>
+            </div>
+          );
+        })}
 
         {isEditing && (
           <Button variant="outline" size="sm" onClick={() => addItem(category)} className="mt-2">
