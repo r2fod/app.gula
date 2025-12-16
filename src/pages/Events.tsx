@@ -11,6 +11,7 @@ import { Calendar, MapPin, Users, Plus, LogOut, Loader2, UtensilsCrossed, Buildi
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import ProfileSettings from "@/components/ProfileSettings";
+import { useEvents } from "@/hooks/useEvents";
 
 interface Event {
   id: string;
@@ -31,51 +32,31 @@ const eventTypeLabels: Record<string, string> = {
 };
 
 const Events = () => {
-  const [events, setEvents] = useState<Event[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { events, loading: eventsLoading } = useEvents();
+  const [profileLoading, setProfileLoading] = useState(true);
   const [profile, setProfile] = useState<{ company_name?: string; avatar_url?: string } | null>(null);
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { toast } = useToast();
+  // const { toast } = useToast(); // Ya no se necesita aquí si el hook maneja sus errores, pero profile fetching aún lo podría usar
 
   useEffect(() => {
-    fetchData();
+    // Solo gestionamos la carga del perfil aquí, events lo maneja el hook
+    if (user) {
+      fetchProfile().then(() => setProfileLoading(false));
 
-    // Suscripción en tiempo real para eventos y cambios en perfil
-    const channelEvents = supabase
-      .channel('events-changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'events', filter: `user_id=eq.${user?.id}` }, () => fetchEvents())
-      .subscribe();
+      const channelProfile = supabase
+        .channel('profile-changes')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles', filter: `id=eq.${user.id}` }, () => fetchProfile())
+        .subscribe();
 
-    const channelProfile = supabase
-      .channel('profile-changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles', filter: `id=eq.${user?.id}` }, () => fetchProfile())
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channelEvents);
-      supabase.removeChannel(channelProfile);
-    };
-  }, [user?.id]);
-
-  const fetchData = async () => {
-    setLoading(true);
-    await Promise.all([fetchEvents(), fetchProfile()]);
-    setLoading(false);
-  };
-
-  const fetchEvents = async () => {
-    const { data, error } = await supabase
-      .from("events")
-      .select("*")
-      .order("event_date", { ascending: false });
-
-    if (error) {
-      toast({ title: "Error", description: "No se pudieron cargar los eventos", variant: "destructive" });
-    } else {
-      setEvents(data || []);
+      return () => {
+        supabase.removeChannel(channelProfile);
+      };
     }
-  };
+  }, [user]);
+
+  // Combinar estados de carga
+  const isLoading = profileLoading || eventsLoading;
 
   const fetchProfile = async () => {
     if (!user) return;
@@ -93,7 +74,7 @@ const Events = () => {
     navigate("/");
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
