@@ -92,9 +92,9 @@ export default function BeveragesSection({ eventId, totalGuests }: BeveragesSect
               {type}
             </h3>
 
-            {/* Header de columnas (solo en modo edición) */}
+            {/* Header de columnas (solo en modo edición, oculto en móvil) */}
             {isEditing && (
-              <div className="grid grid-cols-12 gap-2 text-xs text-muted-foreground font-medium pb-2 border-b border-border">
+              <div className="hidden md:grid grid-cols-12 gap-2 text-xs text-muted-foreground font-medium pb-2 border-b border-border">
                 <span className="col-span-4">Nombre</span>
                 <span className="col-span-2">Cantidad</span>
                 <span className="col-span-2">€/ud</span>
@@ -110,51 +110,63 @@ export default function BeveragesSection({ eventId, totalGuests }: BeveragesSect
               const total = item.quantity * item.unit_price;
 
               return isEditing ? (
-                <div key={idx} className="grid grid-cols-12 gap-2 items-center">
-                  <Input
-                    className="col-span-4 h-8 text-sm"
-                    placeholder="Nombre"
-                    value={item.item_name}
-                    onChange={(e) => updateItem(globalIndex, "item_name", e.target.value)}
-                  />
-                  <Input
-                    className="col-span-2 h-8 text-sm"
-                    type="number"
-                    placeholder="Cant."
-                    value={item.quantity || ""}
-                    onChange={(e) => updateItem(globalIndex, "quantity", parseInt(e.target.value) || 0)}
-                  />
-                  <Input
-                    className="col-span-2 h-8 text-sm"
-                    type="number"
-                    step="0.01"
-                    placeholder="€/ud"
-                    value={item.unit_price || ""}
-                    onChange={(e) => updateItem(globalIndex, "unit_price", parseFloat(e.target.value) || 0)}
-                  />
-                  <span className="col-span-2 text-sm font-medium">{total.toFixed(2)}€</span>
-                  <div className="col-span-1 flex justify-center">
-                    <Checkbox
-                      checked={item.is_extra || false}
-                      onCheckedChange={(checked) => updateItem(globalIndex, "is_extra", checked)}
+                <div key={idx} className="flex flex-col md:grid md:grid-cols-12 gap-2 items-start md:items-center bg-muted/30 p-2 md:p-0 rounded md:bg-transparent">
+                  {/* Mobile: Name full width */}
+                  <div className="w-full md:col-span-4">
+                    <Input
+                      className="h-8 text-sm w-full"
+                      placeholder="Nombre"
+                      value={item.item_name}
+                      onChange={(e) => updateItem(globalIndex, "item_name", e.target.value)}
                     />
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="col-span-1 h-8 w-8"
-                    onClick={() => removeItem(globalIndex)}
-                  >
-                    <Trash2 className="h-4 w-4 text-destructive" />
-                  </Button>
+
+                  {/* Mobile: Row with Qty, Price, Total */}
+                  <div className="grid grid-cols-3 gap-2 w-full md:col-span-6 md:grid-cols-6 md:gap-2 items-center">
+                    <Input
+                      className="h-8 text-sm md:col-span-2"
+                      type="number"
+                      placeholder="Cant."
+                      value={item.quantity || ""}
+                      onChange={(e) => updateItem(globalIndex, "quantity", parseInt(e.target.value) || 0)}
+                    />
+                    <Input
+                      className="h-8 text-sm md:col-span-2"
+                      type="number"
+                      step="0.01"
+                      placeholder="€/ud"
+                      value={item.unit_price || ""}
+                      onChange={(e) => updateItem(globalIndex, "unit_price", parseFloat(e.target.value) || 0)}
+                    />
+                    <span className="text-sm font-medium text-right md:text-left md:col-span-2">{total.toFixed(2)}€</span>
+                  </div>
+
+                  {/* Mobile: Extra & Actions */}
+                  <div className="flex justify-between w-full md:col-span-2 md:justify-start items-center gap-2">
+                    <div className="flex items-center gap-2 md:justify-center md:w-full">
+                      <span className="text-xs md:hidden">Extra?</span>
+                      <Checkbox
+                        checked={item.is_extra || false}
+                        onCheckedChange={(checked) => updateItem(globalIndex, "is_extra", checked)}
+                      />
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-destructive"
+                      onClick={() => removeItem(globalIndex)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
               ) : (
-                <div key={idx} className={`flex justify-between items-center py-2 border-b border-border last:border-0 ${item.is_extra ? 'bg-primary/5 px-2 rounded' : ''}`}>
-                  <span className="font-medium text-sm">
+                <div key={idx} className={`flex flex-col sm:flex-row justify-between items-start sm:items-center py-2 border-b border-border last:border-0 ${item.is_extra ? 'bg-primary/5 px-2 rounded' : ''}`}>
+                  <span className="font-medium text-sm mb-1 sm:mb-0">
                     {item.item_name}
                     {item.is_extra && <span className="ml-2 text-xs text-primary">(Extra)</span>}
                   </span>
-                  <div className="flex gap-4 text-sm">
+                  <div className="flex gap-4 text-sm w-full sm:w-auto justify-between sm:justify-end">
                     <span className="w-16 text-right">{item.quantity} ud</span>
                     <span className="w-16 text-right text-muted-foreground">{item.unit_price.toFixed(2)}€/ud</span>
                     <span className="w-20 text-right font-semibold">{total.toFixed(2)}€</span>
@@ -190,16 +202,24 @@ export default function BeveragesSection({ eventId, totalGuests }: BeveragesSect
 
   return (
     <Card className="bg-section-supplies">
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-lg flex items-center gap-2">
-          <Wine className="h-5 w-5 text-primary" />
-          Bebidas y Barra Libre
-          <span className="text-sm font-normal text-muted-foreground ml-2">
+      <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between pb-2">
+        <CardTitle className="text-lg flex flex-col sm:flex-row sm:items-center gap-2">
+          <div className="flex items-center gap-2">
+            <Wine className="h-5 w-5 text-primary" />
+            Bebidas y Barra Libre
+          </div>
+          <span className="text-sm font-normal text-muted-foreground sm:ml-2">
             ({barHours}h barra)
           </span>
           {formData.length > 0 && (
+            <span className="text-sm font-normal text-muted-foreground hidden sm:inline">
+              |
+            </span>
+          )}
+          {formData.length > 0 && (
             <span className="text-sm font-normal text-muted-foreground">
-              | Total: {calculateGrandTotal().toFixed(2)}€ - {totalGuests > 0 ? (calculateGrandTotal() / totalGuests).toFixed(2) : '0.00'}€/pax
+              Total: {calculateGrandTotal().toFixed(2)}€
+              <span className="hidden sm:inline"> - {totalGuests > 0 ? (calculateGrandTotal() / totalGuests).toFixed(2) : '0.00'}€/pax</span>
             </span>
           )}
         </CardTitle>
