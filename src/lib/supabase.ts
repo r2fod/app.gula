@@ -30,3 +30,39 @@ export const signOut = async () => {
   const { error } = await supabase.auth.signOut();
   return { error };
 };
+
+export const resetPassword = async (email: string) => {
+  const redirectUrl = `${window.location.origin}/auth?reset=true`;
+  
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: redirectUrl,
+  });
+  
+  return { error };
+};
+
+export const updatePassword = async (newPassword: string) => {
+  const { error } = await supabase.auth.updateUser({
+    password: newPassword,
+  });
+  
+  return { error };
+};
+
+export const verifyRegistrationCode = async (code: string): Promise<boolean> => {
+  try {
+    const { data, error } = await supabase.functions.invoke('verify-registration-code', {
+      body: { code },
+    });
+    
+    if (error) {
+      console.error('Error verifying code:', error);
+      return false;
+    }
+    
+    return data?.valid === true;
+  } catch (err) {
+    console.error('Error calling verify function:', err);
+    return false;
+  }
+};

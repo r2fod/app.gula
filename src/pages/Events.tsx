@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Calendar, MapPin, Users, Plus, LogOut, Loader2, UtensilsCrossed } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import ProfileSettings from "@/components/ProfileSettings";
 
 interface Event {
   id: string;
@@ -76,6 +77,7 @@ const Events = () => {
           <div className="flex items-center justify-between">
             <h1 className="text-2xl font-bold">Mis Eventos</h1>
             <div className="flex items-center gap-4">
+              <ProfileSettings />
               <Button variant="outline" asChild>
                 <Link to="/menus">
                   <UtensilsCrossed className="w-4 h-4 mr-2" />
