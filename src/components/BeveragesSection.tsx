@@ -181,16 +181,14 @@ export default function BeveragesSection({ eventId, totalGuests }: BeveragesSect
       // Insert all beverages
       if (formData.length > 0) {
         const recordsToInsert = formData.map(item => {
-          const totalPrice = item.quantity * item.unit_price;
-          const pricePerPerson = totalGuests > 0 ? totalPrice / totalGuests : 0;
-          
+          const pricePerPerson = totalGuests > 0 ? (item.quantity * item.unit_price) / totalGuests : 0;
+
           return {
             event_id: eventId,
             category: item.category,
             item_name: item.item_name,
             quantity: item.quantity || 0,
             unit_price: item.unit_price || 0,
-            total_price: totalPrice,
             price_per_person: pricePerPerson,
             notes: item.notes || null,
             is_extra: item.is_extra || false,
