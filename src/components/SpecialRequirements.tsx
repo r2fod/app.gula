@@ -8,6 +8,7 @@ import { AlertCircle, Armchair, Flower, Edit, Save, X, Plus, Trash2 } from "luci
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useRequirements, RequirementItem } from "@/hooks/useRequirements";
 import { allergySchema, furnitureSchema, otherRequirementSchema } from "@/lib/validations";
+import { useToast } from "@/hooks/use-toast";
 
 interface SpecialRequirementsProps {
   eventId: string;
