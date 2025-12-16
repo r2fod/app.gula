@@ -142,6 +142,11 @@ const Timeline = ({ eventId }: TimelineProps) => {
     }
   };
 
+  const formatTime = (time: string | null) => {
+    if (!time) return "--:--";
+    return time.slice(0, 5);
+  };
+
   const events = [
     { key: "guest_arrival", label: "Llegada de Invitados" },
     { key: "ceremony", label: "Ceremonia" },
@@ -186,8 +191,8 @@ const Timeline = ({ eventId }: TimelineProps) => {
                     className="w-32"
                   />
                 ) : (
-                  <div className="flex items-center justify-center w-16 h-16 rounded-full bg-primary text-primary-foreground font-medium text-sm">
-                    {timings?.[event.key as keyof EventTiming] || "--:--"}
+                  <div className="flex items-center justify-center w-16 h-16 rounded-full bg-primary text-primary-foreground font-medium text-lg">
+                    {formatTime(timings?.[event.key as keyof EventTiming] || null)}
                   </div>
                 )}
                 <div className="flex-1">
@@ -210,7 +215,7 @@ const Timeline = ({ eventId }: TimelineProps) => {
                   placeholder="Horas"
                 />
               ) : (
-                <div className="flex items-center justify-center w-16 h-16 rounded-full bg-primary text-primary-foreground font-medium text-sm">
+                <div className="flex items-center justify-center w-16 h-16 rounded-full bg-primary text-primary-foreground font-medium text-xl">
                   {timings?.bar_hours || "--"}
                 </div>
               )}
