@@ -186,7 +186,7 @@ const Timeline = ({ eventId }: TimelineProps) => {
                     className="w-32"
                   />
                 ) : (
-                  <div className="flex items-center justify-center w-16 h-16 rounded-full bg-primary text-primary-foreground font-bold text-lg">
+                  <div className="flex items-center justify-center w-16 h-16 rounded-full bg-primary text-primary-foreground font-medium text-sm">
                     {timings?.[event.key as keyof EventTiming] || "--:--"}
                   </div>
                 )}
@@ -210,7 +210,7 @@ const Timeline = ({ eventId }: TimelineProps) => {
                   placeholder="Horas"
                 />
               ) : (
-                <div className="flex items-center justify-center w-16 h-16 rounded-full bg-primary text-primary-foreground font-bold text-lg">
+                <div className="flex items-center justify-center w-16 h-16 rounded-full bg-primary text-primary-foreground font-medium text-sm">
                   {timings?.bar_hours || "--"}
                 </div>
               )}

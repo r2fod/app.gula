@@ -28,22 +28,24 @@ export function MenuItemList({ items, onChange }: MenuItemListProps) {
 
   return (
     <div className="space-y-4">
-      <div className="flex gap-2">
+      <div className="flex flex-col sm:flex-row gap-2 items-start sm:items-center">
         <Input
           placeholder="Nombre del plato"
           value={newItem.name}
           onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
-          className="flex-1"
+          className="w-full sm:flex-1"
         />
-        <Input
-          placeholder="Descripción (opcional)"
-          value={newItem.description}
-          onChange={(e) => setNewItem({ ...newItem, description: e.target.value })}
-          className="flex-1"
-        />
-        <Button type="button" onClick={addItem} size="icon">
-          <Plus className="h-4 w-4" />
-        </Button>
+        <div className="flex gap-2 w-full sm:flex-1">
+          <Input
+            placeholder="Descripción (opcional)"
+            value={newItem.description}
+            onChange={(e) => setNewItem({ ...newItem, description: e.target.value })}
+            className="flex-1"
+          />
+          <Button type="button" onClick={addItem} size="icon" className="shrink-0">
+            <Plus className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
 
       {items.length > 0 ? (
