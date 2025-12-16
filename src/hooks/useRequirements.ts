@@ -64,12 +64,12 @@ export const useRequirements = (eventId: string) => {
     for (const item of currentItems) {
       if (item.id) {
         // Update
-        const { error } = await supabase.from(table).update(item).eq("id", item.id);
+        const { error } = await supabase.from(table).update(item as any).eq("id", item.id);
         if (error) throw error;
       } else {
         // Insert
         // Ensure event_id is present
-        const { error } = await supabase.from(table).insert({ ...item, event_id: eventId });
+        const { error } = await supabase.from(table).insert({ ...item, event_id: eventId } as any);
         if (error) throw error;
       }
     }
