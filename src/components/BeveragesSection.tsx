@@ -69,6 +69,63 @@ const DEFAULT_BEVERAGES: { category: string; item_name: string; ratio_per_pax: n
   { category: 'refrescos', item_name: 'Limones', ratio_per_pax: 0.025, unit_price: 2.50, per_bar_hour: true },
 ];
 
+// Función para inferir el tipo de bebida desde el nombre
+const getBeverageType = (itemName: string): string => {
+  const name = itemName.toLowerCase();
+
+  // Vinos
+  if (name.includes('verdejo') || name.includes('rioja') || name.includes('cava')) {
+    return 'Vinos';
+  }
+  // Agua
+  if (name.includes('agua') || name.includes('solán')) {
+    return 'Agua';
+  }
+  // Cervezas
+  if (name.includes('cerveza') || name.includes('botellín')) {
+    return 'Cervezas';
+  }
+  // Vermut
+  if (name.includes('vermut')) {
+    return 'Vermut';
+  }
+  // Ginebra
+  if (name.includes('ginebra') || name.includes('puerto de indias')) {
+    return 'Ginebra';
+  }
+  // Ron
+  if (name.includes('ron ')) {
+    return 'Ron';
+  }
+  // Whisky
+  if (name.includes('ballentines') || name.includes('whisky')) {
+    return 'Whisky';
+  }
+  // Vodka
+  if (name.includes('vodka')) {
+    return 'Vodka';
+  }
+  // Tequila
+  if (name.includes('tequila')) {
+    return 'Tequila';
+  }
+  // Otros Licores
+  if (name.includes('cazalla') || name.includes('baileys') || name.includes('mistela')) {
+    return 'Otros Licores';
+  }
+  // Mixers
+  if (name.includes('tónica') || name.includes('hielo')) {
+    return 'Mixers';
+  }
+  // Refrescos
+  if (name.includes('coca') || name.includes('fanta') || name.includes('aquarius') ||
+    name.includes('nestea') || name.includes('seven') || name.includes('limones')) {
+    return 'Refrescos';
+  }
+
+  return 'Otros';
+};
+
 const CATEGORIES = [
   { key: 'aperitivo', label: 'Aperitivo/Comida', icon: Wine },
   { key: 'copas', label: 'Barra Copas', icon: GlassWater },
@@ -551,79 +608,95 @@ export default function BeveragesSection({ eventId, totalGuests }: BeveragesSect
       );
     }
 
-    // Agrupar items ya no es necesario, mostrar lista plana
+    // Agrupar por tipo de bebida (visual, no en BD)
+    const groupedByType = items.reduce((acc, item) => {
+      const type = getBeverageType(item.item_name);
+      if (!acc[type]) acc[type] = [];
+      acc[type].push(item);
+      return acc;
+    }, {} as Record<string, typeof items>);
+
     return (
-      <div className="space-y-4">
-        {/* Header de columnas (solo en modo edición) */}
-        {isEditing && items.length > 0 && (
-          <div className="grid grid-cols-12 gap-2 text-xs text-muted-foreground font-medium pb-2 border-b border-border">
-            <span className="col-span-4">Nombre</span>
-            <span className="col-span-2">Cantidad</span>
-            <span className="col-span-2">€/ud</span>
-            <span className="col-span-2">Total</span>
-            <span className="col-span-1">Extra</span>
-            <span className="col-span-1"></span>
+      <div className="space-y-6">
+        {Object.entries(groupedByType).map(([type, typeItems]) => (
+          <div key={type} className="space-y-2">
+            {/* Tipo Header */}
+            <h3 className="text-sm font-semibold text-primary border-b border-primary/30 pb-1">
+              {type}
+            </h3>
+
+            {/* Header de columnas (solo en modo edición) */}
+            {isEditing && (
+              <div className="grid grid-cols-12 gap-2 text-xs text-muted-foreground font-medium pb-2 border-b border-border">
+                <span className="col-span-4">Nombre</span>
+                <span className="col-span-2">Cantidad</span>
+                <span className="col-span-2">€/ud</span>
+                <span className="col-span-2">Total</span>
+                <span className="col-span-1">Extra</span>
+                <span className="col-span-1"></span>
+              </div>
+            )}
+
+            {/* Items del tipo */}
+            {typeItems.map((item, idx) => {
+              const globalIndex = formData.findIndex(b => b === item);
+              const total = item.quantity * item.unit_price;
+
+              return isEditing ? (
+                <div key={idx} className="grid grid-cols-12 gap-2 items-center">
+                  <Input
+                    className="col-span-4 h-8 text-sm"
+                    placeholder="Nombre"
+                    value={item.item_name}
+                    onChange={(e) => updateItem(globalIndex, "item_name", e.target.value)}
+                  />
+                  <Input
+                    className="col-span-2 h-8 text-sm"
+                    type="number"
+                    placeholder="Cant."
+                    value={item.quantity || ""}
+                    onChange={(e) => updateItem(globalIndex, "quantity", parseInt(e.target.value) || 0)}
+                  />
+                  <Input
+                    className="col-span-2 h-8 text-sm"
+                    type="number"
+                    step="0.01"
+                    placeholder="€/ud"
+                    value={item.unit_price || ""}
+                    onChange={(e) => updateItem(globalIndex, "unit_price", parseFloat(e.target.value) || 0)}
+                  />
+                  <span className="col-span-2 text-sm font-medium">{total.toFixed(2)}€</span>
+                  <div className="col-span-1 flex justify-center">
+                    <Checkbox
+                      checked={item.is_extra || false}
+                      onCheckedChange={(checked) => updateItem(globalIndex, "is_extra", checked)}
+                    />
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="col-span-1 h-8 w-8"
+                    onClick={() => removeItem(globalIndex)}
+                  >
+                    <Trash2 className="h-4 w-4 text-destructive" />
+                  </Button>
+                </div>
+              ) : (
+                <div key={idx} className={`flex justify-between items-center py-2 border-b border-border last:border-0 ${item.is_extra ? 'bg-primary/5 px-2 rounded' : ''}`}>
+                  <span className="font-medium text-sm">
+                    {item.item_name}
+                    {item.is_extra && <span className="ml-2 text-xs text-primary">(Extra)</span>}
+                  </span>
+                  <div className="flex gap-4 text-sm">
+                    <span className="w-16 text-right">{item.quantity} ud</span>
+                    <span className="w-16 text-right text-muted-foreground">{item.unit_price.toFixed(2)}€/ud</span>
+                    <span className="w-20 text-right font-semibold">{total.toFixed(2)}€</span>
+                  </div>
+                </div>
+              );
+            })}
           </div>
-        )}
-
-        {/* Items */}
-        {items.map((item, idx) => {
-          const globalIndex = formData.findIndex(b => b === item);
-          const total = item.quantity * item.unit_price;
-
-          return isEditing ? (
-            <div key={idx} className="grid grid-cols-12 gap-2 items-center">
-              <Input
-                className="col-span-4 h-8 text-sm"
-                placeholder="Nombre"
-                value={item.item_name}
-                onChange={(e) => updateItem(globalIndex, "item_name", e.target.value)}
-              />
-              <Input
-                className="col-span-2 h-8 text-sm"
-                type="number"
-                placeholder="Cant."
-                value={item.quantity || ""}
-                onChange={(e) => updateItem(globalIndex, "quantity", parseInt(e.target.value) || 0)}
-              />
-              <Input
-                className="col-span-2 h-8 text-sm"
-                type="number"
-                step="0.01"
-                placeholder="€/ud"
-                value={item.unit_price || ""}
-                onChange={(e) => updateItem(globalIndex, "unit_price", parseFloat(e.target.value) || 0)}
-              />
-              <span className="col-span-2 text-sm font-medium">{total.toFixed(2)}€</span>
-              <div className="col-span-1 flex justify-center">
-                <Checkbox
-                  checked={item.is_extra || false}
-                  onCheckedChange={(checked) => updateItem(globalIndex, "is_extra", checked)}
-                />
-              </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="col-span-1 h-8 w-8"
-                onClick={() => removeItem(globalIndex)}
-              >
-                <Trash2 className="h-4 w-4 text-destructive" />
-              </Button>
-            </div>
-          ) : (
-            <div key={idx} className={`flex justify-between items-center py-2 border-b border-border last:border-0 ${item.is_extra ? 'bg-primary/5 px-2 rounded' : ''}`}>
-              <span className="font-medium text-sm">
-                {item.item_name}
-                {item.is_extra && <span className="ml-2 text-xs text-primary">(Extra)</span>}
-              </span>
-              <div className="flex gap-4 text-sm">
-                <span className="w-16 text-right">{item.quantity} ud</span>
-                <span className="w-16 text-right text-muted-foreground">{item.unit_price.toFixed(2)}€/ud</span>
-                <span className="w-20 text-right font-semibold">{total.toFixed(2)}€</span>
-              </div>
-            </div>
-          );
-        })}
+        ))}
 
         {isEditing && (
           <Button variant="outline" size="sm" onClick={() => addItem(category)} className="mt-2">
