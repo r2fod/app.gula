@@ -8,6 +8,7 @@ export interface RequirementItem {
   [key: string]: any;
 }
 
+// Hook para gestionar requisitos especiales (alergias, mobiliario, etc).
 export const useRequirements = (eventId: string) => {
   const [allergies, setAllergies] = useState<RequirementItem[]>([]);
   const [furniture, setFurniture] = useState<RequirementItem[]>([]);
@@ -15,6 +16,7 @@ export const useRequirements = (eventId: string) => {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
+  // Carga todos los requisitos (alergias, mobiliario, otros) en paralelo.
   const fetchAll = useCallback(async () => {
     try {
       setLoading(true);
@@ -43,12 +45,19 @@ export const useRequirements = (eventId: string) => {
     fetchAll();
   }, [fetchAll]);
 
+  /**
+   * Sincroniza una categoría específica con la base de datos.
+   * Estrategia:
+   * 1. Detectar y borrar items eliminados.
+   * 2. Actualizar items existentes.
+   * 3. Insertar nuevos items.
+   */
   const syncCategory = async (
     table: "allergies" | "furniture" | "other_requirements",
     currentItems: RequirementItem[],
     originalItems: RequirementItem[]
   ) => {
-    // 1. Delete items that are in original but not in current (by ID)
+    // 1. Borrar items que estaban en original pero no en current (por ID)
     const currentIds = currentItems.filter(item => item.id).map(item => item.id);
     const toDelete = originalItems.filter(item => item.id && !currentIds.includes(item.id));
 
@@ -60,7 +69,7 @@ export const useRequirements = (eventId: string) => {
       if (error) throw error;
     }
 
-    // 2. Update existing items (with ID) and Insert new items (without ID)
+    // 2. Actualizar items existentes (con ID) e Insertar nuevos (sin ID)
     for (const item of currentItems) {
       if (item.id) {
         // Update
@@ -75,6 +84,9 @@ export const useRequirements = (eventId: string) => {
     }
   };
 
+  /**
+   * Guarda todos los cambios en todas las categorías.
+   */
   const saveAll = async (
     newAllergies: RequirementItem[],
     newFurniture: RequirementItem[],

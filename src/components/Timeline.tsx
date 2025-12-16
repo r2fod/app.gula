@@ -20,6 +20,7 @@ interface EventTiming {
   bar_hours: number | null;
 }
 
+// Componente para gestionar los horarios del evento.
 const Timeline = ({ eventId }: TimelineProps) => {
   const [timings, setTimings] = useState<EventTiming | null>(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -61,6 +62,7 @@ const Timeline = ({ eventId }: TimelineProps) => {
     };
   }, [eventId]);
 
+  // Carga los horarios desde la base de datos
   const fetchTimings = async () => {
     const { data, error } = await supabase
       .from("event_timings")
@@ -74,7 +76,10 @@ const Timeline = ({ eventId }: TimelineProps) => {
     }
   };
 
-  // Calcular automáticamente bar_hours cuando cambian bar_start o bar_end
+  /**
+   * Calcular automáticamente bar_hours cuando cambian bar_start o bar_end.
+   * Retorna el número de horas redondeado.
+   */
   const calculateBarHours = (barStart: string | null, barEnd: string | null): number | null => {
     if (!barStart || !barEnd) return null;
 
@@ -89,6 +94,7 @@ const Timeline = ({ eventId }: TimelineProps) => {
     return Math.max(1, Math.round(endHours - startHours));
   };
 
+  // Guarda los horarios y recalcula bar_hours si es necesario
   const handleSave = async () => {
     // Calcular bar_hours automáticamente si hay bar_start y bar_end
     let dataToSave = { ...formData };
@@ -186,13 +192,13 @@ const Timeline = ({ eventId }: TimelineProps) => {
                 {isEditing ? (
                   <Input
                     type="time"
-                    value={formData[event.key as keyof EventTiming] || ""}
+                    value={(formData[event.key as keyof Omit<EventTiming, 'bar_hours'>] as string) || ""}
                     onChange={(e) => setFormData({ ...formData, [event.key]: e.target.value })}
                     className="w-32"
                   />
                 ) : (
                   <div className="flex items-center justify-center w-16 h-16 rounded-full bg-primary text-primary-foreground font-medium text-lg">
-                    {formatTime(timings?.[event.key as keyof EventTiming] || null)}
+                    {formatTime((timings?.[event.key as keyof Omit<EventTiming, 'bar_hours'>] as string) || null)}
                   </div>
                 )}
                 <div className="flex-1">

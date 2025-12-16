@@ -33,6 +33,8 @@ const eventTypeLabels: Record<string, string> = {
   comunion: "Comunión",
 };
 
+// Cabecera principal del evento.
+// Muestra información clave (Lugar, Fecha, PAX) y permite la edición rápida de estos datos.
 const EventHeader = ({ event, onUpdate }: EventHeaderProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
@@ -45,6 +47,7 @@ const EventHeader = ({ event, onUpdate }: EventHeaderProps) => {
 
   const totalGuests = formData.adults + formData.children + formData.staff;
 
+  // Calcula el total de invitados y guarda los cambios en la base de datos.
   const handleSave = async () => {
     const { error } = await supabase
       .from("events")

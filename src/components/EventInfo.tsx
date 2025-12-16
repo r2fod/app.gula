@@ -22,6 +22,8 @@ interface EventFeatures {
   candy_bar: boolean;
 }
 
+// Componente para gestionar las características opcionales del evento.
+// Permite activar/desactivar servicios adicionales como Corners, Barras extra, etc.
 const EventInfo = ({ eventId }: EventInfoProps) => {
   const [features, setFeatures] = useState<EventFeatures | null>(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -81,6 +83,7 @@ const EventInfo = ({ eventId }: EventInfoProps) => {
     }
   };
 
+  // Lista de features disponibles para mostrar en la UI
   const summary = [
     { key: "lemonade_corner", label: "Corner Limonada y Agua" },
     { key: "beer_corner", label: "Corner Cervezas y Vermut" },

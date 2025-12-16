@@ -14,7 +14,9 @@ export interface Beverage {
   is_extra?: boolean;
 }
 
-// Bebidas predefinidas
+// Lista de bebidas predefinidas con sus ratios por persona y precios.
+// ratio_per_pax: Cantidad estimada por persona.
+// per_bar_hour: Si true, el ratio se multiplica por las horas de barra libre.
 export const DEFAULT_BEVERAGES: { category: string; item_name: string; ratio_per_pax: number; unit_price: number; per_bar_hour?: boolean }[] = [
   // APERITIVO/COMIDA
   { category: 'aperitivo', item_name: 'Nebla Verdejo', ratio_per_pax: 0.40, unit_price: 5.22 },
@@ -73,7 +75,8 @@ export const useBeverages = (eventId: string, totalGuests: number) => {
     fetchBarHours();
   }, [eventId]);
 
-  // Real-time subscriptions
+  // Suscripción a cambios en tiempo real en Supabase para mantener los datos sincronizados
+  // Escucha cambios en 'beverages' para actualizar la lista y en 'event_timings' para recalcular horas de barra
   useEffect(() => {
     const beveragesChannel = supabase
       .channel('beverages-changes')
@@ -135,6 +138,10 @@ export const useBeverages = (eventId: string, totalGuests: number) => {
     }
   };
 
+  /**
+   * Calcula la duración de la barra libre basándose en la hora de inicio y fin.
+   * Maneja el caso de cruce de medianoche (ej. 23:00 a 02:00).
+   */
   const calculateAndSetBarHours = (data: any) => {
     const start = data.bar_start.split(':');
     const end = data.bar_end.split(':');
@@ -144,6 +151,10 @@ export const useBeverages = (eventId: string, totalGuests: number) => {
     setBarHours(Math.max(1, Math.round(endHours - startHours)));
   };
 
+  /**
+   * Calcula la cantidad necesaria de una bebida.
+   * Fórmula: Ratio * PAX * (Horas de barra si aplica)
+   */
   const calculateQuantity = (item: { ratio_per_pax: number; per_bar_hour?: boolean }) => {
     if (item.per_bar_hour) {
       return Math.ceil(item.ratio_per_pax * totalGuests * barHours);
@@ -151,6 +162,10 @@ export const useBeverages = (eventId: string, totalGuests: number) => {
     return Math.ceil(item.ratio_per_pax * totalGuests);
   };
 
+  /**
+   * Genera la lista inicial de bebidas calculando cantidades automáticas
+   * basándose en los ratios predefinidos y los datos del evento.
+   */
   const generateDefaultBeverages = () => {
     const defaultItems: Beverage[] = DEFAULT_BEVERAGES.map(item => ({
       category: item.category,
@@ -178,6 +193,10 @@ export const useBeverages = (eventId: string, totalGuests: number) => {
     toast({ title: "Cantidades actualizadas", description: "Basado en los nuevos datos del evento" });
   };
 
+  /**
+   * Valida y guarda las bebidas en la base de datos.
+   * Estrategia: Borrar todas las bebidas existentes del evento e insertar las nuevas (Bulk Insert).
+   */
   const handleSave = async () => {
     try {
       const validatedData = formData.map((item, index) => {

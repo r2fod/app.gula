@@ -19,6 +19,8 @@ export const MENU_TYPES = [
   { value: 'especial', label: 'Menú Especial' },
 ];
 
+// Visualiza la colección de menús creados.
+// Renderiza una cuadrícula (Grid) de tarjetas, cada una representando un menú con sus opciones.
 export function MenuList({ menus, isLoading, onEdit, onDelete, onPreview }: MenuListProps) {
   if (isLoading) {
     return <p className="text-center text-muted-foreground py-8">Cargando menús...</p>;

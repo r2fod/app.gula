@@ -18,6 +18,8 @@ const CATEGORIES = [
   { key: 'refrescos', label: 'Refrescos', icon: Beer },
 ];
 
+// Componente principal para la gestión de bebidas.
+// Permite visualizar, editar, añadir y eliminar bebidas, así como recalcular cantidades según PAX.
 export default function BeveragesSection({ eventId, totalGuests }: BeveragesSectionProps) {
   const {
     beverages, // Datos guardados en BD (para revertir)
@@ -61,6 +63,9 @@ export default function BeveragesSection({ eventId, totalGuests }: BeveragesSect
     return formData.reduce((sum, b) => sum + (b.quantity * b.unit_price), 0);
   };
 
+  // Renderiza la lista de items.
+  // En modo edición: Muestra inputs y permite modificar valores. Diseño responsive (Card en móvil, Grid en desktop).
+  // En modo visualización: Muestra lista de lectura.
   const renderItems = (category: string) => {
     const items = formData.filter(b => b.category === category);
 
@@ -75,7 +80,7 @@ export default function BeveragesSection({ eventId, totalGuests }: BeveragesSect
       );
     }
 
-    // Agrupar por tipo de bebida (visual, no en BD)
+    // Agrupar por tipo de bebida (Vinos, Refrescos, etc) solo para efectos visuales
     const groupedByType = items.reduce((acc, item) => {
       const type = getBeverageType(item.item_name);
       if (!acc[type]) acc[type] = [];
@@ -110,8 +115,9 @@ export default function BeveragesSection({ eventId, totalGuests }: BeveragesSect
               const total = item.quantity * item.unit_price;
 
               return isEditing ? (
+                // Diseño responsive: Card apilada en móvil, Fila en Desktop
                 <div key={idx} className="flex flex-col md:grid md:grid-cols-12 gap-2 items-start md:items-center bg-muted/30 p-2 md:p-0 rounded md:bg-transparent">
-                  {/* Mobile: Name full width */}
+                  {/* Mobile: Nombre ancho completo */}
                   <div className="w-full md:col-span-4">
                     <Input
                       className="h-8 text-sm w-full"

@@ -13,6 +13,8 @@ interface MenuItemListProps {
   onChange: (items: MenuItem[]) => void;
 }
 
+// Componente para gestionar la lista de platos de un menú.
+// Permite añadir nuevos platos (Nombre + Descripción) y eliminar existentes.
 export function MenuItemList({ items, onChange }: MenuItemListProps) {
   const [newItem, setNewItem] = useState({ name: "", description: "" });
 

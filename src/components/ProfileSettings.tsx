@@ -9,6 +9,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Settings, Save, Upload, Building2, Globe, Wand2, X } from "lucide-react";
 
+// Dialogo de configuración del perfil de empresa.
+// Permite editar nombre, logo y website, con función de autocompletado inteligente.
 export default function ProfileSettings() {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -43,6 +45,7 @@ export default function ProfileSettings() {
     }
   };
 
+  // Intenta obtener datos de la empresa (Logo, Nombre) automáticamente scraping la URL proporcionada.
   const handleAutoFill = async () => {
     if (!websiteUrl) return;
 
@@ -86,6 +89,7 @@ export default function ProfileSettings() {
     }
   };
 
+  // Sube el archivo seleccionado al bucket 'menus' y actualiza la URL del logo.
   const handleUploadLogo = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || !e.target.files[0] || !user) return;
 

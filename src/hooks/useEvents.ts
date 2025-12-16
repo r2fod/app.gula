@@ -16,6 +16,7 @@ export interface Event {
   created_at?: string;
 }
 
+// Hook para gestionar la lista de eventos del usuario de forma reactiva.
 export function useEvents() {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -26,7 +27,8 @@ export function useEvents() {
     if (user) {
       fetchEvents();
 
-      // Suscripción en tiempo real para eventos
+      // Suscripción en tiempo real para mantener la lista de eventos actualizada
+      // Escucha cualquier cambio (INSERT, UPDATE, DELETE) en la tabla 'events' para el usuario actual
       const channel = supabase
         .channel('events-list-changes')
         .on(
@@ -51,6 +53,9 @@ export function useEvents() {
     }
   }, [user]);
 
+  /**
+   * Obtiene los eventos desde Supabase, ordenados por fecha (más recientes primero).
+   */
   const fetchEvents = async () => {
     try {
       const { data, error } = await supabase

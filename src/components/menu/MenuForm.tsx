@@ -21,6 +21,10 @@ interface MenuFormProps {
   onSave: (data: any, file: File | null) => Promise<void>;
 }
 
+// Formulario principal para crear o editar un menú.
+// Gestiona el estado del formulario, la validación con Zod, y la subida de archivos.
+// - open: Estado del diálogo
+// - onSave: Callback para guardar datos
 export function MenuForm({ open, onOpenChange, initialData, onSave }: MenuFormProps) {
   const { toast } = useToast();
   const [formData, setFormData] = useState({
@@ -47,6 +51,8 @@ export function MenuForm({ open, onOpenChange, initialData, onSave }: MenuFormPr
     }
   }, [open, initialData]);
 
+  // Valida y envía el formulario.
+  // Realiza validación de Zod tanto para los datos generales como para cada plato individual.
   const handleSubmit = async () => {
     // Validar datos principales del menú
     const result = menuSchema.safeParse({
