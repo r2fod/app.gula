@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Calendar, MapPin, Users, Plus, LogOut, Loader2, UtensilsCrossed } from "lucide-react";
+import { Calendar, MapPin, Users, Plus, LogOut, Loader2, UtensilsCrossed, Building2 } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import ProfileSettings from "@/components/ProfileSettings";
@@ -26,41 +26,43 @@ const eventTypeLabels: Record<string, string> = {
   evento_privado: "Evento Privado",
   delivery: "Delivery",
   comunion: "Comunión",
+  bautizo: "Bautizo",
+  otros: "Otros",
 };
 
 const Events = () => {
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
+  const [profile, setProfile] = useState<{ company_name?: string; avatar_url?: string } | null>(null);
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
-    fetchEvents();
+    fetchData();
 
-    // Suscripción en tiempo real para eventos
-    const channel = supabase
+    // Suscripción en tiempo real para eventos y cambios en perfil
+    const channelEvents = supabase
       .channel('events-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'events',
-          filter: `user_id=eq.${user?.id}`
-        },
-        () => {
-          console.log('🔄 Cambio detectado en eventos, recargando...');
-          fetchEvents();
-        }
-      )
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'events', filter: `user_id=eq.${user?.id}` }, () => fetchEvents())
       .subscribe();
 
-    // Cleanup
+    const channelProfile = supabase
+      .channel('profile-changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles', filter: `id=eq.${user?.id}` }, () => fetchProfile())
+      .subscribe();
+
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(channelEvents);
+      supabase.removeChannel(channelProfile);
     };
   }, [user?.id]);
+
+  const fetchData = async () => {
+    setLoading(true);
+    await Promise.all([fetchEvents(), fetchProfile()]);
+    setLoading(false);
+  };
 
   const fetchEvents = async () => {
     const { data, error } = await supabase
@@ -69,15 +71,21 @@ const Events = () => {
       .order("event_date", { ascending: false });
 
     if (error) {
-      toast({
-        title: "Error",
-        description: "No se pudieron cargar los eventos",
-        variant: "destructive",
-      });
+      toast({ title: "Error", description: "No se pudieron cargar los eventos", variant: "destructive" });
     } else {
       setEvents(data || []);
     }
-    setLoading(false);
+  };
+
+  const fetchProfile = async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from("profiles")
+      .select("company_name, avatar_url")
+      .eq("id", user.id)
+      .single();
+
+    if (data) setProfile(data);
   };
 
   const handleSignOut = async () => {
@@ -98,10 +106,26 @@ const Events = () => {
       <header className="border-b border-border bg-card">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold">Mis Eventos</h1>
+            <div className="flex items-center gap-3">
+              {profile?.avatar_url ? (
+                <img
+                  src={profile.avatar_url}
+                  alt={profile.company_name || "Logo"}
+                  className="w-10 h-10 object-contain rounded-md bg-white border border-border"
+                />
+              ) : (
+                <div className="w-10 h-10 rounded-md bg-primary/10 flex items-center justify-center text-primary">
+                  <Building2 className="w-6 h-6" />
+                </div>
+              )}
+              <h1 className="text-2xl font-bold">
+                {profile?.company_name || "Mis Eventos"}
+              </h1>
+            </div>
+
             <div className="flex items-center gap-4">
               <ProfileSettings />
-              <Button variant="outline" asChild>
+              <Button variant="outline" asChild className="hidden md:flex">
                 <Link to="/menus">
                   <UtensilsCrossed className="w-4 h-4 mr-2" />
                   Menús
@@ -110,12 +134,12 @@ const Events = () => {
               <Button asChild>
                 <Link to="/events/create">
                   <Plus className="w-4 h-4 mr-2" />
-                  Nuevo Evento
+                  <span className="hidden md:inline">Nuevo Evento</span>
+                  <span className="md:hidden">Nuevo</span>
                 </Link>
               </Button>
-              <Button variant="outline" onClick={handleSignOut}>
-                <LogOut className="w-4 h-4 mr-2" />
-                Salir
+              <Button variant="ghost" size="icon" onClick={handleSignOut} title="Cerrar sesión">
+                <LogOut className="w-4 h-4" />
               </Button>
             </div>
           </div>
@@ -127,9 +151,7 @@ const Events = () => {
           <Card className="p-12 text-center">
             <Calendar className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
             <h2 className="text-2xl font-bold mb-2">No tienes eventos aún</h2>
-            <p className="text-muted-foreground mb-6">
-              Crea tu primer evento para comenzar a gestionar tus celebraciones
-            </p>
+            <p className="text-muted-foreground mb-6">Create tu primer evento para comenzar</p>
             <Button asChild>
               <Link to="/events/create">
                 <Plus className="w-4 h-4 mr-2" />
@@ -141,7 +163,7 @@ const Events = () => {
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {events.map((event) => (
               <Link key={event.id} to={`/events/${event.id}`}>
-                <Card className="p-6 hover:shadow-medium transition-shadow cursor-pointer">
+                <Card className="p-6 hover:shadow-medium transition-shadow cursor-pointer h-full flex flex-col hover:border-primary/50">
                   <div className="flex items-start justify-between mb-4">
                     <Badge variant="secondary">
                       {eventTypeLabels[event.event_type] || event.event_type}
@@ -149,20 +171,16 @@ const Events = () => {
                     <Calendar className="w-5 h-5 text-primary" />
                   </div>
 
-                  <h3 className="text-xl font-bold mb-4">{event.venue}</h3>
+                  <h3 className="text-xl font-bold mb-4 line-clamp-2">{event.venue}</h3>
 
-                  <div className="space-y-2 text-sm text-muted-foreground">
+                  <div className="space-y-2 text-sm text-muted-foreground mt-auto">
                     <div className="flex items-center gap-2">
                       <Calendar className="w-4 h-4" />
-                      <span>
-                        {format(new Date(event.event_date), "d 'de' MMMM, yyyy", {
+                      <span className="capitalize">
+                        {format(new Date(event.event_date), "EEEE, d 'de' MMMM", {
                           locale: es,
                         })}
                       </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <MapPin className="w-4 h-4" />
-                      <span>{event.venue}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <Users className="w-4 h-4" />
