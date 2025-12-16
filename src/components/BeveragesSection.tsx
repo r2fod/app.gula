@@ -180,20 +180,15 @@ export default function BeveragesSection({ eventId, totalGuests }: BeveragesSect
 
       // Insert all beverages
       if (formData.length > 0) {
-        const recordsToInsert = formData.map(item => {
-          const pricePerPerson = totalGuests > 0 ? (item.quantity * item.unit_price) / totalGuests : 0;
-
-          return {
-            event_id: eventId,
-            category: item.category,
-            item_name: item.item_name,
-            quantity: item.quantity || 0,
-            unit_price: item.unit_price || 0,
-            price_per_person: pricePerPerson,
-            notes: item.notes || null,
-            is_extra: item.is_extra || false,
-          };
-        });
+        const recordsToInsert = formData.map(item => ({
+          event_id: eventId,
+          category: item.category,
+          item_name: item.item_name,
+          quantity: item.quantity || 0,
+          unit_price: item.unit_price || 0,
+          notes: item.notes || null,
+          is_extra: item.is_extra || false,
+        }));
 
         const { error: insertError } = await supabase
           .from("beverages")
