@@ -27,6 +27,28 @@ const MenuSection = ({ eventId }: MenuSectionProps) => {
 
   useEffect(() => {
     fetchItems();
+
+    // Suscripción en tiempo real para menu_items
+    const channel = supabase
+      .channel(`menu-items-${eventId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'menu_items',
+          filter: `event_id=eq.${eventId}`
+        },
+        () => {
+          console.log('🔄 Cambio detectado en menú, recargando...');
+          fetchItems();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [eventId]);
 
   const fetchItems = async () => {

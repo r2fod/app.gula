@@ -25,6 +25,28 @@ const SuppliesSection = ({ eventId }: SuppliesSectionProps) => {
 
   useEffect(() => {
     fetchSupplies();
+
+    // Suscripción en tiempo real para supplies
+    const channel = supabase
+      .channel(`supplies-${eventId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'supplies',
+          filter: `event_id=eq.${eventId}`
+        },
+        () => {
+          console.log('🔄 Cambio detectado en suministros, recargando...');
+          fetchSupplies();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [eventId]);
 
   const fetchSupplies = async () => {

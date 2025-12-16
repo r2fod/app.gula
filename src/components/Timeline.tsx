@@ -36,6 +36,29 @@ const Timeline = ({ eventId }: TimelineProps) => {
 
   useEffect(() => {
     fetchTimings();
+
+    // Suscripción en tiempo real para event_timings
+    const channel = supabase
+      .channel(`event-timings-${eventId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'event_timings',
+          filter: `event_id=eq.${eventId}`
+        },
+        () => {
+          console.log('🔄 Cambio detectado en horarios, recargando...');
+          fetchTimings();
+        }
+      )
+      .subscribe();
+
+    // Cleanup: desuscribirse al desmontar
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [eventId]);
 
   const fetchTimings = async () => {
@@ -51,7 +74,40 @@ const Timeline = ({ eventId }: TimelineProps) => {
     }
   };
 
+  // Calcular automáticamente bar_hours cuando cambian bar_start o bar_end
+  const calculateBarHours = (barStart: string | null, barEnd: string | null): number | null => {
+    if (!barStart || !barEnd) return null;
+
+    const start = barStart.split(':');
+    const end = barEnd.split(':');
+    const startHours = parseInt(start[0]) + parseInt(start[1]) / 60;
+    let endHours = parseInt(end[0]) + parseInt(end[1]) / 60;
+
+    // Manejar cruce de medianoche
+    if (endHours < startHours) endHours += 24;
+
+    return Math.max(1, Math.round(endHours - startHours));
+  };
+
   const handleSave = async () => {
+    // Calcular bar_hours automáticamente si hay bar_start y bar_end
+    let dataToSave = { ...formData };
+
+    if (formData.bar_start && formData.bar_end) {
+      const calculatedHours = calculateBarHours(formData.bar_start, formData.bar_end);
+
+      // Si el usuario cambió manualmente bar_hours y es diferente al calculado, mostrar advertencia
+      if (formData.bar_hours && calculatedHours && formData.bar_hours !== calculatedHours) {
+        toast({
+          title: "⚠️ Advertencia",
+          description: `Las horas de barra libre (${formData.bar_hours}h) no coinciden con el horario (${calculatedHours}h). Se usará el valor calculado.`,
+          variant: "default",
+        });
+      }
+
+      dataToSave.bar_hours = calculatedHours;
+    }
+
     const { data: existing } = await supabase
       .from("event_timings")
       .select("id")
@@ -62,12 +118,12 @@ const Timeline = ({ eventId }: TimelineProps) => {
     if (existing) {
       ({ error } = await supabase
         .from("event_timings")
-        .update(formData)
+        .update(dataToSave)
         .eq("event_id", eventId));
     } else {
       ({ error } = await supabase
         .from("event_timings")
-        .insert({ ...formData, event_id: eventId }));
+        .insert({ ...dataToSave, event_id: eventId }));
     }
 
     if (error) {
@@ -140,6 +196,30 @@ const Timeline = ({ eventId }: TimelineProps) => {
                 <Clock className="w-5 h-5 text-muted-foreground" />
               </div>
             ))}
+
+            {/* Campo para horas de barra libre */}
+            <div className="flex items-center gap-4 p-4 rounded-lg bg-background/50 border-2 border-primary/20">
+              {isEditing ? (
+                <Input
+                  type="number"
+                  min="0"
+                  max="24"
+                  value={formData.bar_hours || ""}
+                  onChange={(e) => setFormData({ ...formData, bar_hours: parseInt(e.target.value) || null })}
+                  className="w-32"
+                  placeholder="Horas"
+                />
+              ) : (
+                <div className="flex items-center justify-center w-16 h-16 rounded-full bg-primary text-primary-foreground font-bold text-lg">
+                  {timings?.bar_hours || "--"}
+                </div>
+              )}
+              <div className="flex-1">
+                <div className="font-semibold text-lg text-foreground">Horas de Barra Libre</div>
+                <div className="text-sm text-muted-foreground">Duración total de la barra (para cálculo de bebidas)</div>
+              </div>
+              <Clock className="w-5 h-5 text-muted-foreground" />
+            </div>
           </div>
         </div>
       </Card>

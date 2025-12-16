@@ -37,7 +37,30 @@ const Events = () => {
 
   useEffect(() => {
     fetchEvents();
-  }, []);
+
+    // Suscripción en tiempo real para eventos
+    const channel = supabase
+      .channel('events-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'events',
+          filter: `user_id=eq.${user?.id}`
+        },
+        () => {
+          console.log('🔄 Cambio detectado en eventos, recargando...');
+          fetchEvents();
+        }
+      )
+      .subscribe();
+
+    // Cleanup
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id]);
 
   const fetchEvents = async () => {
     const { data, error } = await supabase

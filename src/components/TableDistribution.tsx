@@ -25,6 +25,28 @@ const TableDistribution = ({ eventId }: TableDistributionProps) => {
 
   useEffect(() => {
     fetchTables();
+
+    // Suscripción en tiempo real para tables
+    const channel = supabase
+      .channel(`tables-${eventId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'tables',
+          filter: `event_id=eq.${eventId}`
+        },
+        () => {
+          console.log('🔄 Cambio detectado en mesas, recargando...');
+          fetchTables();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [eventId]);
 
   const fetchTables = async () => {

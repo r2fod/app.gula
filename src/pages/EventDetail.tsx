@@ -40,6 +40,31 @@ const EventDetail = () => {
 
   useEffect(() => {
     fetchEvent();
+
+    if (!id) return;
+
+    // Suscripción en tiempo real para el evento actual
+    const channel = supabase
+      .channel(`event-${id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'events',
+          filter: `id=eq.${id}`
+        },
+        () => {
+          console.log('🔄 Cambio detectado en evento, recargando...');
+          fetchEvent();
+        }
+      )
+      .subscribe();
+
+    // Cleanup
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [id]);
 
   const fetchEvent = async () => {
