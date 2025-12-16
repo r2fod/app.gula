@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AlertCircle, Armchair, Flower, Edit, Save, X, Plus, Trash2 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useRequirements, RequirementItem } from "@/hooks/useRequirements";
+import { allergySchema, furnitureSchema, otherRequirementSchema } from "@/lib/validations";
 
 interface SpecialRequirementsProps {
   eventId: string;
@@ -54,7 +55,39 @@ const SpecialRequirements = ({ eventId }: SpecialRequirementsProps) => {
     }
   }, [allergies, furniture, other, isEditing]);
 
+  import { allergySchema, furnitureSchema, otherRequirementSchema } from "@/lib/validations";
+  // ... (imports)
+
+  // ... (component definition)
+
   const handleSave = async () => {
+    // Validate Allergies
+    for (const item of allergyData) {
+      const result = allergySchema.safeParse(item);
+      if (!result.success) {
+        toast({ title: "Error en Alergias", description: result.error.errors[0].message, variant: "destructive" });
+        return;
+      }
+    }
+
+    // Validate Furniture
+    for (const item of furnitureData) {
+      const result = furnitureSchema.safeParse(item);
+      if (!result.success) {
+        toast({ title: "Error en Mobiliario", description: result.error.errors[0].message, variant: "destructive" });
+        return;
+      }
+    }
+
+    // Validate Other
+    for (const item of otherData) {
+      const result = otherRequirementSchema.safeParse(item);
+      if (!result.success) {
+        toast({ title: "Error en Otros Requisitos", description: result.error.errors[0].message, variant: "destructive" });
+        return;
+      }
+    }
+
     const success = await saveAll(allergyData, furnitureData, otherData);
     if (success) {
       setIsEditing(false);

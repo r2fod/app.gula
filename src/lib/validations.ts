@@ -42,3 +42,32 @@ export const staffSchema = z.object({
 });
 
 export type StaffInput = z.infer<typeof staffSchema>;
+
+// Requirement schemas
+export const allergySchema = z.object({
+  guest_name: z.string().min(1, "El nombre del invitado es requerido"),
+  allergy: z.string().min(1, "La alergia es requerida"),
+  notes: z.string().optional(),
+});
+
+export const furnitureSchema = z.object({
+  item_name: z.string().min(1, "El nombre del ítem es requerido"),
+  description: z.string().optional(),
+});
+
+export const otherRequirementSchema = z.object({
+  item_name: z.string().min(1, "El nombre del requisito es requerido"),
+  description: z.string().optional(),
+});
+
+// Menu schemas
+export const dishSchema = z.object({
+  name: z.string().min(1, "El nombre del plato es requerido"),
+  description: z.string().optional(),
+});
+
+export const menuSchema = z.object({
+  name: z.string().min(1, "El nombre del menú es requerido"),
+  description: z.string().optional(),
+  menu_type: z.string().min(1, "El tipo de menú es requerido"),
+});
