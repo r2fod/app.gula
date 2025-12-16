@@ -7,6 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Edit2, Save, X, Plus, Trash2, Wine, Beer, GlassWater, RefreshCw } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
+import { z } from "zod";
+import { beverageSchema } from "@/lib/validations";
 
 interface BeveragesSectionProps {
   eventId: string;
@@ -268,113 +270,6 @@ export default function BeveragesSection({ eventId, totalGuests }: BeveragesSect
     };
   }, [eventId, totalGuests]);
 
-  // Polling optimizado: solo cuando el componente está visible y activo
-  useEffect(() => {
-    let interval: NodeJS.Timeout | null = null;
-
-    const pollBarHours = async () => {
-      // Solo hacer polling si no estamos editando
-      if (isEditing) return;
-
-      const { data } = await supabase
-        .from("event_timings")
-        .select("bar_hours, bar_start, bar_end")
-        .eq("event_id", eventId)
-        .single();
-
-      if (data) {
-        let newBarHours = 2;
-
-        if (data.bar_hours) {
-          newBarHours = data.bar_hours;
-        } else if (data.bar_start && data.bar_end) {
-          const start = data.bar_start.split(':');
-          const end = data.bar_end.split(':');
-          const startHours = parseInt(start[0]) + parseInt(start[1]) / 60;
-          let endHours = parseInt(end[0]) + parseInt(end[1]) / 60;
-          if (endHours < startHours) endHours += 24;
-          newBarHours = Math.max(1, Math.round(endHours - startHours));
-        }
-
-        // Si cambió bar_hours, recalcular
-        if (newBarHours !== barHours) {
-          console.log('🔄 Polling detectó cambio en bar_hours:', barHours, '→', newBarHours);
-          setBarHours(newBarHours);
-
-          // Recalcular bebidas
-          const { data: currentBeverages } = await supabase
-            .from("beverages")
-            .select("*")
-            .eq("event_id", eventId);
-
-          if (currentBeverages && currentBeverages.length > 0) {
-            const updated = currentBeverages.map(item => {
-              const defaultItem = DEFAULT_BEVERAGES.find(d => d.item_name === item.item_name && d.category === item.category);
-              if (defaultItem && !item.is_extra) {
-                const newQuantity = defaultItem.per_bar_hour
-                  ? Math.ceil(defaultItem.ratio_per_pax * totalGuests * newBarHours)
-                  : Math.ceil(defaultItem.ratio_per_pax * totalGuests);
-
-                console.log(`  📊 ${item.item_name}: ${item.quantity} → ${newQuantity} (per_bar_hour: ${defaultItem.per_bar_hour})`);
-                return { ...item, quantity: newQuantity };
-              }
-              return item;
-            });
-
-            const recordsToUpdate = updated.map(item => ({
-              event_id: eventId,
-              category: item.category,
-              // subtype: item.subtype || null, // TEMPORAL: Comentado hasta aplicar migración
-              item_name: item.item_name,
-              quantity: item.quantity,
-              unit_price: item.unit_price,
-              notes: item.notes,
-              is_extra: item.is_extra || false,
-            }));
-
-            await supabase.from("beverages").delete().eq("event_id", eventId);
-            await supabase.from("beverages").insert(recordsToUpdate);
-            console.log('✅ Bebidas recalculadas por polling');
-
-            setBeverages(updated);
-            setFormData(updated);
-          }
-        }
-      }
-    };
-
-    // Verificar si el documento está visible
-    const handleVisibilityChange = () => {
-      if (document.hidden) {
-        // Pausar polling cuando la pestaña no está visible
-        if (interval) {
-          clearInterval(interval);
-          interval = null;
-          console.log('⏸️ Polling pausado (pestaña oculta)');
-        }
-      } else {
-        // Reanudar polling cuando la pestaña vuelve a estar visible
-        if (!interval) {
-          interval = setInterval(pollBarHours, 5000); // Aumentado a 5 segundos
-          console.log('▶️ Polling reanudado (pestaña visible)');
-        }
-      }
-    };
-
-    // Iniciar polling solo si la pestaña está visible
-    if (!document.hidden) {
-      interval = setInterval(pollBarHours, 5000); // 5 segundos en lugar de 3
-    }
-
-    // Escuchar cambios de visibilidad
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-
-    return () => {
-      if (interval) clearInterval(interval);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, [eventId, totalGuests, barHours, isEditing]);
-
   // Recalcular cuando cambia totalGuests
   useEffect(() => {
     const recalculateForGuests = async () => {
@@ -520,6 +415,23 @@ export default function BeveragesSection({ eventId, totalGuests }: BeveragesSect
 
   const handleSave = async () => {
     try {
+      // Validar datos antes de guardar
+      const validatedData = formData.map((item, index) => {
+        try {
+          return beverageSchema.parse({
+            ...item,
+            quantity: item.quantity || 0,
+            unit_price: item.unit_price || 0,
+          });
+        } catch (error) {
+          if (error instanceof z.ZodError) {
+            const firstError = error.errors[0];
+            throw new Error(`Fila ${index + 1} (${item.item_name || 'Sin nombre'}): ${firstError.message}`);
+          }
+          throw error;
+        }
+      });
+
       // Delete existing beverages for this event
       const { error: deleteError } = await supabase
         .from("beverages")
@@ -533,14 +445,13 @@ export default function BeveragesSection({ eventId, totalGuests }: BeveragesSect
       }
 
       // Insert all beverages
-      if (formData.length > 0) {
-        const recordsToInsert = formData.map(item => ({
+      if (validatedData.length > 0) {
+        const recordsToInsert = validatedData.map(item => ({
           event_id: eventId,
           category: item.category,
-          // subtype: item.subtype || null, // TEMPORAL: Comentado hasta aplicar migración
           item_name: item.item_name,
-          quantity: item.quantity || 0,
-          unit_price: item.unit_price || 0,
+          quantity: item.quantity,
+          unit_price: item.unit_price,
           notes: item.notes || null,
           is_extra: item.is_extra || false,
         }));
@@ -556,12 +467,13 @@ export default function BeveragesSection({ eventId, totalGuests }: BeveragesSect
         }
       }
 
-      toast({ title: "Bebidas guardadas" });
+      toast({ title: "✅ Bebidas guardadas correctamente" });
       setIsEditing(false);
       fetchBeverages();
     } catch (err) {
       console.error('Error saving beverages:', err);
-      toast({ title: "Error", description: "Error al guardar las bebidas", variant: "destructive" });
+      const errorMessage = err instanceof Error ? err.message : "Error al guardar las bebidas";
+      toast({ title: "Error de validación", description: errorMessage, variant: "destructive" });
     }
   };
 
