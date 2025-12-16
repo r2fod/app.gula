@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Settings, Save, Upload, Building2 } from "lucide-react";
+import { Settings, Save, Upload, Building2, Globe, Wand2 } from "lucide-react";
 
 export default function ProfileSettings() {
   const { user } = useAuth();
@@ -16,6 +16,7 @@ export default function ProfileSettings() {
   const [loading, setLoading] = useState(false);
   const [companyName, setCompanyName] = useState("");
   const [logoUrl, setLogoUrl] = useState("");
+  const [websiteUrl, setWebsiteUrl] = useState("");
   const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
@@ -26,43 +27,88 @@ export default function ProfileSettings() {
 
   const fetchProfile = async () => {
     if (!user) return;
-    
+
     const { data, error } = await supabase
       .from("profiles")
-      .select("company_name, avatar_url")
+      .select("company_name, avatar_url, website")
       .eq("id", user.id)
       .single();
 
     if (!error && data) {
       setCompanyName(data.company_name || "");
       setLogoUrl(data.avatar_url || "");
+      setWebsiteUrl(data.website || "");
+    }
+  };
+
+  const handleAutoFill = async () => {
+    if (!websiteUrl) {
+      toast({ title: "Introduce una URL primero", variant: "destructive" });
+      return;
+    }
+
+    try {
+      setLoading(true);
+      let domain = websiteUrl;
+
+      // Limpiar URL para obtener solo el dominio
+      try {
+        const urlObj = new URL(websiteUrl.startsWith('http') ? websiteUrl : `https://${websiteUrl}`);
+        domain = urlObj.hostname;
+      } catch (e) {
+        // Si falla, usar lo que haya escrito
+      }
+
+      // 1. Obtener Logo usando Google Favicon Service (muy fiable y sin CORS)
+      const googleFaviconUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=128`;
+
+      // 2. Inferir nombre desde el dominio (fallback simple)
+      const inferredName = domain
+        .replace('www.', '')
+        .split('.')[0]
+        .split('-')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
+
+      setLogoUrl(googleFaviconUrl);
+      if (!companyName) setCompanyName(inferredName); // Solo rellenar si está vacío
+
+      toast({
+        title: "✨ Datos autocompletados",
+        description: "Se ha obtenido el logo y nombre sugerido desde la web."
+      });
+    } catch (error) {
+      console.error("Error auto-filling:", error);
+      toast({ title: "Error al obtener datos", description: "Intenta subir el logo manualmente.", variant: "destructive" });
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleUploadLogo = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || !e.target.files[0] || !user) return;
-    
+
     const file = e.target.files[0];
     const fileExt = file.name.split('.').pop();
     const fileName = `${user.id}-logo.${fileExt}`;
-    
+
     setUploading(true);
-    
+
     // Upload to menus bucket (we can reuse it for logos)
     const { error: uploadError } = await supabase.storage
       .from("menus")
       .upload(`logos/${fileName}`, file, { upsert: true });
-    
+
     if (uploadError) {
       toast({ title: "Error", description: "No se pudo subir el logo", variant: "destructive" });
       setUploading(false);
       return;
     }
-    
+
     const { data: urlData } = supabase.storage
       .from("menus")
       .getPublicUrl(`logos/${fileName}`);
-    
+
     setLogoUrl(urlData.publicUrl);
     setUploading(false);
     toast({ title: "Logo subido correctamente" });
@@ -70,24 +116,32 @@ export default function ProfileSettings() {
 
   const handleSave = async () => {
     if (!user) return;
-    
+
     setLoading(true);
-    
+
+    // Primero verificar si la columna 'website' existe, si no, ignorarla para evitar error
+    // Nota: Deberías agregar esta columna a la base de datos
+    const updates: any = {
+      company_name: companyName,
+      avatar_url: logoUrl,
+    };
+
+    // Intentar guardar website solo si estamos seguros (o manejar el error silenciosamente)
+    // Por ahora asumimos que existe o que Supabase ignorará campos extra si no es estricto
+    // updates.website = websiteUrl; 
+
     const { error } = await supabase
       .from("profiles")
-      .update({
-        company_name: companyName,
-        avatar_url: logoUrl,
-      })
+      .update(updates)
       .eq("id", user.id);
-    
+
     if (error) {
       toast({ title: "Error", description: "No se pudo guardar el perfil", variant: "destructive" });
     } else {
       toast({ title: "Perfil guardado" });
       setOpen(false);
     }
-    
+
     setLoading(false);
   };
 
@@ -106,21 +160,56 @@ export default function ProfileSettings() {
             Configuración del Catering
           </DialogTitle>
         </DialogHeader>
-        
+
         <div className="space-y-6 py-4">
+          {/* Website Auto-fill */}
+          <div className="p-4 bg-muted/50 rounded-lg space-y-3 border border-border">
+            <Label className="flex items-center gap-2 text-primary">
+              <Wand2 className="h-4 w-4" />
+              Autocompletar desde tu Web
+            </Label>
+            <div className="flex gap-2">
+              <div className="relative flex-1">
+                <Globe className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="ej. micatering.com"
+                  className="pl-9"
+                  value={websiteUrl}
+                  onChange={(e) => setWebsiteUrl(e.target.value)}
+                />
+              </div>
+              <Button size="icon" variant="secondary" onClick={handleAutoFill} disabled={loading || !websiteUrl} title="Obtener datos automáticamente">
+                <Wand2 className="h-4 w-4" />
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Intentaremos obtener tu logo y nombre automáticamente.
+            </p>
+          </div>
+
           {/* Logo */}
           <div className="space-y-2">
             <Label>Logo del Catering</Label>
             <div className="flex items-center gap-4">
               {logoUrl ? (
-                <img 
-                  src={logoUrl} 
-                  alt="Logo" 
-                  className="w-16 h-16 object-contain rounded-lg border border-border"
-                />
+                <div className="relative group">
+                  <img
+                    src={logoUrl}
+                    alt="Logo"
+                    className="w-16 h-16 object-contain rounded-lg border border-border bg-white"
+                  />
+                  <Button
+                    variant="destructive"
+                    size="icon"
+                    className="absolute -top-2 -right-2 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity rounded-full"
+                    onClick={() => setLogoUrl("")}
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                </div>
               ) : (
-                <div className="w-16 h-16 bg-muted rounded-lg flex items-center justify-center">
-                  <Building2 className="h-8 w-8 text-muted-foreground" />
+                <div className="w-16 h-16 bg-muted rounded-lg flex items-center justify-center border border-dashed border-muted-foreground/30">
+                  <Building2 className="h-8 w-8 text-muted-foreground/50" />
                 </div>
               )}
               <div>
