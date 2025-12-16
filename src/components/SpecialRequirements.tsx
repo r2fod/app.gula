@@ -38,6 +38,7 @@ const SpecialRequirements = ({ eventId }: SpecialRequirementsProps) => {
     saveAll,
     loading
   } = useRequirements(eventId);
+  const { toast } = useToast();
 
   const [isEditing, setIsEditing] = useState(false);
 
@@ -55,7 +56,8 @@ const SpecialRequirements = ({ eventId }: SpecialRequirementsProps) => {
     }
   }, [allergies, furniture, other, isEditing]);
 
-  import { allergySchema, furnitureSchema, otherRequirementSchema } from "@/lib/validations";
+  // Eliminado import incorrecto
+  // ... (imports)
   // ... (imports)
 
   // ... (component definition)
