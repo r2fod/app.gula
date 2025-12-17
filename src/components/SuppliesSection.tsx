@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 
 interface SuppliesSectionProps {
   eventId: string;
+  totalGuests: number;
 }
 
 interface Supply {
@@ -46,20 +47,20 @@ const SUPPLY_RATIOS: { item_name: string; item_type: string; ratio_per_pax: numb
   { item_name: "Jarrita", item_type: "Café", ratio_per_pax: 0.04 },
 ];
 
-const SuppliesSection = ({ eventId }: SuppliesSectionProps) => {
+const SuppliesSection = ({ eventId, totalGuests }: SuppliesSectionProps) => {
   const [supplies, setSupplies] = useState<Supply[]>([]);
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState<Supply[]>([]);
-  const [totalGuests, setTotalGuests] = useState(0);
   const [barHours, setBarHours] = useState(4);
   const [isGenerating, setIsGenerating] = useState(false);
   const [uploadingIndex, setUploadingIndex] = useState<number | null>(null);
   const { toast } = useToast();
   const fileInputRefs = useRef<{ [key: number]: HTMLInputElement | null }>({});
+  const prevTotalGuestsRef = useRef(totalGuests);
 
   useEffect(() => {
     fetchSupplies();
-    fetchEventData();
+    fetchBarHours();
 
     const channel = supabase
       .channel(`supplies-${eventId}`)
@@ -82,17 +83,15 @@ const SuppliesSection = ({ eventId }: SuppliesSectionProps) => {
     };
   }, [eventId]);
 
-  const fetchEventData = async () => {
-    const { data: eventData } = await supabase
-      .from("events")
-      .select("total_guests")
-      .eq("id", eventId)
-      .maybeSingle();
-
-    if (eventData) {
-      setTotalGuests(eventData.total_guests || 0);
+  // Recalcular cuando cambien los PAX
+  useEffect(() => {
+    if (prevTotalGuestsRef.current !== totalGuests && prevTotalGuestsRef.current > 0 && supplies.length > 0) {
+      recalculateQuantities();
     }
+    prevTotalGuestsRef.current = totalGuests;
+  }, [totalGuests]);
 
+  const fetchBarHours = async () => {
     const { data: timingsData } = await supabase
       .from("event_timings")
       .select("bar_hours")
@@ -115,6 +114,35 @@ const SuppliesSection = ({ eventId }: SuppliesSectionProps) => {
       setSupplies(data);
       setFormData(data);
     }
+  };
+
+  const recalculateQuantities = async () => {
+    if (totalGuests === 0 || supplies.length === 0) return;
+
+    const updatedSupplies = supplies.map(supply => {
+      const ratio = SUPPLY_RATIOS.find(r => r.item_name === supply.item_name);
+      if (ratio) {
+        let quantity = Math.ceil(totalGuests * ratio.ratio_per_pax);
+        if (ratio.bar_hours_multiplier) {
+          quantity = Math.ceil(totalGuests * ratio.ratio_per_pax * barHours / 4);
+        }
+        return { ...supply, quantity };
+      }
+      return supply;
+    });
+
+    // Actualizar en BD
+    for (const item of updatedSupplies) {
+      if (item.id) {
+        await supabase
+          .from("supplies")
+          .update({ quantity: item.quantity })
+          .eq("id", item.id);
+      }
+    }
+
+    toast({ title: "Recalculado", description: `Cantidades actualizadas para ${totalGuests} PAX` });
+    fetchSupplies();
   };
 
   const handlePhotoUpload = async (index: number, file: File) => {
