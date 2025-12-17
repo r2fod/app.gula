@@ -1,0 +1,115 @@
+
+> vite_react_shadcn_ts@0.0.0 lint
+> eslint .
+
+
+C:\Users\raule\Desktop\Gula_project\app.gula\src\components\BeveragesSection.tsx
+  49:68  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\raule\Desktop\Gula_project\app.gula\src\components\CornersSection.tsx
+  39:6   warning  React Hook useEffect has a missing dependency: 'fetchCorners'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  89:68  error    Unexpected any. Specify a different type                                                                         @typescript-eslint/no-explicit-any
+
+C:\Users\raule\Desktop\Gula_project\app.gula\src\components\ProfileSettings.tsx
+   28:6   warning  React Hook useEffect has a missing dependency: 'fetchProfile'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+   41:31  error    Unexpected any. Specify a different type                                                                         @typescript-eslint/no-explicit-any
+  129:20  error    Unexpected any. Specify a different type                                                                         @typescript-eslint/no-explicit-any
+
+C:\Users\raule\Desktop\Gula_project\app.gula\src\components\RentalsSection.tsx
+  35:6  warning  React Hook useEffect has a missing dependency: 'fetchRentals'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\raule\Desktop\Gula_project\app.gula\src\components\RoomEquipmentSection.tsx
+  37:6  warning  React Hook useEffect has a missing dependency: 'fetchEquipment'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\raule\Desktop\Gula_project\app.gula\src\components\StaffSection.tsx
+  40:6   warning  React Hook useEffect has a missing dependency: 'fetchStaff'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  99:66  error    Unexpected any. Specify a different type                                                                       @typescript-eslint/no-explicit-any
+
+C:\Users\raule\Desktop\Gula_project\app.gula\src\components\TableDistribution.tsx
+  50:6  warning  React Hook useEffect has a missing dependency: 'fetchTables'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\raule\Desktop\Gula_project\app.gula\src\components\ui\badge.tsx
+  29:17  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+C:\Users\raule\Desktop\Gula_project\app.gula\src\components\ui\button.tsx
+  47:18  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+C:\Users\raule\Desktop\Gula_project\app.gula\src\components\ui\command.tsx
+  24:11  error  An interface declaring no members is equivalent to its supertype  @typescript-eslint/no-empty-object-type
+
+C:\Users\raule\Desktop\Gula_project\app.gula\src\components\ui\form.tsx
+  129:10  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+C:\Users\raule\Desktop\Gula_project\app.gula\src\components\ui\navigation-menu.tsx
+  111:3  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+C:\Users\raule\Desktop\Gula_project\app.gula\src\components\ui\sidebar.tsx
+  636:3  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+C:\Users\raule\Desktop\Gula_project\app.gula\src\components\ui\sonner.tsx
+  27:19  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+C:\Users\raule\Desktop\Gula_project\app.gula\src\components\ui\textarea.tsx
+  5:18  error  An interface declaring no members is equivalent to its supertype  @typescript-eslint/no-empty-object-type
+
+C:\Users\raule\Desktop\Gula_project\app.gula\src\components\ui\toggle.tsx
+  37:18  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+C:\Users\raule\Desktop\Gula_project\app.gula\src\contexts\AuthContext.tsx
+  17:14  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+C:\Users\raule\Desktop\Gula_project\app.gula\src\features\events\components\EventInfo.tsx
+  45:6  warning  React Hook useEffect has a missing dependency: 'fetchFeatures'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\raule\Desktop\Gula_project\app.gula\src\features\events\components\Timeline.tsx
+   63:6  warning  React Hook useEffect has a missing dependency: 'fetchTimings'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  100:9  error    'dataToSave' is never reassigned. Use 'const' instead                                                            prefer-const
+
+C:\Users\raule\Desktop\Gula_project\app.gula\src\features\events\hooks\useBeverages.ts
+   87:5   error  Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free  @typescript-eslint/ban-ts-comment
+  152:42  error  Unexpected any. Specify a different type                                                                             @typescript-eslint/no-explicit-any
+
+C:\Users\raule\Desktop\Gula_project\app.gula\src\features\events\hooks\useRequirements.ts
+   9:18  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  88:69  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  93:95  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\raule\Desktop\Gula_project\app.gula\src\features\menu\components\MenuForm.tsx
+  21:18  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\raule\Desktop\Gula_project\app.gula\src\features\menu\components\MenuList.tsx
+  14:14  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+C:\Users\raule\Desktop\Gula_project\app.gula\src\features\menu\components\MenuManager.tsx
+  39:6   warning  React Hook useEffect has a missing dependency: 'fetchMenus'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  79:39  error    Unexpected any. Specify a different type                                                                       @typescript-eslint/no-explicit-any
+
+C:\Users\raule\Desktop\Gula_project\app.gula\src\features\menu\components\MenuSection.tsx
+  52:6  warning  React Hook useEffect has a missing dependency: 'fetchItems'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\raule\Desktop\Gula_project\app.gula\src\pages\CreateEvent.tsx
+  39:18  error  Optional chain expressions can return undefined by design - using a non-null assertion is unsafe and wrong  @typescript-eslint/no-non-null-asserted-optional-chain
+
+C:\Users\raule\Desktop\Gula_project\app.gula\src\pages\EventDetail.tsx
+  68:6  warning  React Hook useEffect has a missing dependency: 'fetchEvent'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\raule\Desktop\Gula_project\app.gula\src\pages\Events.tsx
+  56:6  warning  React Hook useEffect has a missing dependency: 'fetchProfile'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\raule\Desktop\Gula_project\app.gula\supabase\functions\ai-assistant\index.ts
+  50:30  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  62:58  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  66:61  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  70:56  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  74:58  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  76:66  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  81:59  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  95:28  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  98:54  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\raule\Desktop\Gula_project\app.gula\tailwind.config.ts
+  91:13  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+✖ 47 problems (26 errors, 21 warnings)
+  1 error and 0 warnings potentially fixable with the `--fix` option.
+

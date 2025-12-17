@@ -84,7 +84,6 @@ export const useBeverages = (eventId: string, totalGuests: number) => {
       .eq("event_id", eventId);
 
     if (error) throw error;
-    // @ts-ignore: Assuming photo_url exists in DB or will exist
     return data as Beverage[];
   };
 
@@ -224,7 +223,7 @@ export const useBeverages = (eventId: string, totalGuests: number) => {
           unit_price: item.unit_price,
           notes: item.notes || null,
           is_extra: item.is_extra || false,
-          photo_url: item.photo_url || null,
+          //photo_url: item.photo_url || null,
         }));
 
         const { error: insertError } = await supabase.from("beverages").insert(recordsToInsert);
@@ -236,8 +235,14 @@ export const useBeverages = (eventId: string, totalGuests: number) => {
       queryClient.invalidateQueries({ queryKey: ['beverages', eventId] });
     } catch (err) {
       console.error('Error saving beverages:', err);
-      const errorMessage = err instanceof Error ? err.message : "Error al guardar las bebidas";
-      toast({ title: "Error de validación", description: errorMessage, variant: "destructive" });
+      let errorMessage = err instanceof Error ? err.message : "Error al guardar las bebidas";
+
+      // Check for specific DB errors
+      if (errorMessage.includes("column \"photo_url\" does not exist") || errorMessage.includes("42703")) {
+        errorMessage = "Error de Base de Datos: Falta la columna 'photo_url'. Por favor ejecuta la migración pendiente (supabase db push).";
+      }
+
+      toast({ title: "Error al guardar", description: errorMessage, variant: "destructive", duration: 5000 });
     }
   };
 

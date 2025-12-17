@@ -9,6 +9,7 @@ export const beverageSchema = z.object({
   unit_price: z.number().min(0, 'El precio debe ser positivo'),
   notes: z.string().max(500).optional().nullable(),
   is_extra: z.boolean().optional().default(false),
+  photo_url: z.string().optional().nullable(),
 });
 
 export type BeverageInput = z.infer<typeof beverageSchema>;

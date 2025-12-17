@@ -9,13 +9,13 @@ import Timeline from "@/features/events/components/Timeline";
 import EventInfo from "@/features/events/components/EventInfo";
 import MenuSection from "@/features/menu/components/MenuSection";
 import SuppliesSection from "@/features/events/components/SuppliesSection";
-import TableDistribution from "@/components/TableDistribution";
-import SpecialRequirements from "@/components/SpecialRequirements";
-import BeveragesSection from "@/components/BeveragesSection";
-import CornersSection from "@/components/CornersSection";
-import RoomEquipmentSection from "@/components/RoomEquipmentSection";
-import StaffSection from "@/components/StaffSection";
-import RentalsSection from "@/components/RentalsSection";
+import TableDistribution from "@/features/events/components/TableDistribution";
+import SpecialRequirements from "@/features/events/components/SpecialRequirements";
+import BeveragesSection from "@/features/events/components/BeveragesSection";
+import CornersSection from "@/features/events/components/CornersSection";
+import RoomEquipmentSection from "@/features/events/components/RoomEquipmentSection";
+import StaffSection from "@/features/events/components/StaffSection";
+import RentalsSection from "@/features/events/components/RentalsSection";
 import AIAssistant from "@/components/AIAssistant";
 
 interface Event {
