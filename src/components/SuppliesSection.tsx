@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Package, Edit, Save, X, Plus, Trash2, Calculator, RefreshCw } from "lucide-react";
+import { Package, Edit, Save, X, Plus, Trash2, Calculator, RefreshCw, ImagePlus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -16,6 +16,8 @@ interface Supply {
   item_type: string;
   quantity: number;
   notes?: string;
+  photo_url?: string;
+  unit_price?: number;
 }
 
 // Ratios de cristalería y menaje por PAX (basados en Excel ORDEN_MODELO)
@@ -51,7 +53,9 @@ const SuppliesSection = ({ eventId }: SuppliesSectionProps) => {
   const [totalGuests, setTotalGuests] = useState(0);
   const [barHours, setBarHours] = useState(4);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [uploadingIndex, setUploadingIndex] = useState<number | null>(null);
   const { toast } = useToast();
+  const fileInputRefs = useRef<{ [key: number]: HTMLInputElement | null }>({});
 
   useEffect(() => {
     fetchSupplies();
@@ -113,6 +117,26 @@ const SuppliesSection = ({ eventId }: SuppliesSectionProps) => {
     }
   };
 
+  const handlePhotoUpload = async (index: number, file: File) => {
+    setUploadingIndex(index);
+    const fileExt = file.name.split('.').pop();
+    const fileName = `supply-${eventId}-${Date.now()}.${fileExt}`;
+
+    const { data, error } = await supabase.storage
+      .from('menus')
+      .upload(fileName, file);
+
+    if (error) {
+      toast({ title: "Error", description: "No se pudo subir la imagen", variant: "destructive" });
+      setUploadingIndex(null);
+      return;
+    }
+
+    const { data: urlData } = supabase.storage.from('menus').getPublicUrl(fileName);
+    updateSupply(index, "photo_url", urlData.publicUrl);
+    setUploadingIndex(null);
+  };
+
   const generateSupplies = async () => {
     if (totalGuests === 0) {
       toast({ 
@@ -128,7 +152,6 @@ const SuppliesSection = ({ eventId }: SuppliesSectionProps) => {
     const generatedSupplies: Supply[] = SUPPLY_RATIOS.map(item => {
       let quantity = Math.ceil(totalGuests * item.ratio_per_pax);
       
-      // Para vasos de cubata, multiplicar por horas de barra
       if (item.bar_hours_multiplier) {
         quantity = Math.ceil(totalGuests * item.ratio_per_pax * barHours / 4);
       }
@@ -137,11 +160,11 @@ const SuppliesSection = ({ eventId }: SuppliesSectionProps) => {
         item_name: item.item_name,
         item_type: item.item_type,
         quantity,
-        notes: item.notes || ""
+        notes: item.notes || "",
+        unit_price: 0
       };
     });
 
-    // Delete existing and insert new
     await supabase
       .from("supplies")
       .delete()
@@ -154,7 +177,8 @@ const SuppliesSection = ({ eventId }: SuppliesSectionProps) => {
         item_name: s.item_name,
         item_type: s.item_type,
         quantity: s.quantity,
-        notes: s.notes
+        notes: s.notes,
+        unit_price: s.unit_price
       })));
 
     if (error) {
@@ -168,7 +192,6 @@ const SuppliesSection = ({ eventId }: SuppliesSectionProps) => {
   };
 
   const handleSave = async () => {
-    // Delete all existing and insert all from formData
     await supabase
       .from("supplies")
       .delete()
@@ -182,7 +205,9 @@ const SuppliesSection = ({ eventId }: SuppliesSectionProps) => {
           item_name: item.item_name,
           item_type: item.item_type,
           quantity: item.quantity,
-          notes: item.notes || null
+          notes: item.notes || null,
+          photo_url: item.photo_url || null,
+          unit_price: item.unit_price || 0
         })));
 
       if (error) {
@@ -197,7 +222,7 @@ const SuppliesSection = ({ eventId }: SuppliesSectionProps) => {
   };
 
   const addSupply = () => {
-    setFormData([...formData, { item_name: "", item_type: "", quantity: 0 }]);
+    setFormData([...formData, { item_name: "", item_type: "", quantity: 0, unit_price: 0 }]);
   };
 
   const removeSupply = (index: number) => {
@@ -210,13 +235,15 @@ const SuppliesSection = ({ eventId }: SuppliesSectionProps) => {
     setFormData(updated);
   };
 
-  // Agrupar por tipo
   const groupedSupplies = (isEditing ? formData : supplies).reduce((acc, supply) => {
     const type = supply.item_type || "Otros";
     if (!acc[type]) acc[type] = [];
     acc[type].push(supply);
     return acc;
   }, {} as Record<string, Supply[]>);
+
+  // Calcular total
+  const totalPrice = supplies.reduce((sum, s) => sum + (s.quantity * (s.unit_price || 0)), 0);
 
   return (
     <section>
@@ -225,6 +252,7 @@ const SuppliesSection = ({ eventId }: SuppliesSectionProps) => {
           <h2 className="text-3xl font-bold text-foreground">Cristalería y Menaje</h2>
           <p className="text-sm text-muted-foreground mt-1">
             {totalGuests} PAX • {barHours}h barra libre
+            {totalPrice > 0 && <span className="ml-2 text-primary font-medium">• Total: {totalPrice.toFixed(2)}€</span>}
           </p>
         </div>
         <div className="flex gap-2">
@@ -265,11 +293,45 @@ const SuppliesSection = ({ eventId }: SuppliesSectionProps) => {
                     <div key={supply.id || index} className="flex items-center justify-between p-4 rounded-lg bg-background/50">
                       {isEditing ? (
                         <div className="flex-1 space-y-2">
-                          <Input
-                            placeholder="Nombre del ítem"
-                            value={supply.item_name}
-                            onChange={(e) => updateSupply(globalIndex, "item_name", e.target.value)}
-                          />
+                          <div className="flex gap-2 items-center">
+                            {supply.photo_url ? (
+                              <img 
+                                src={supply.photo_url} 
+                                alt={supply.item_name} 
+                                className="w-12 h-12 rounded object-cover cursor-pointer"
+                                onClick={() => fileInputRefs.current[globalIndex]?.click()}
+                              />
+                            ) : (
+                              <Button 
+                                size="icon" 
+                                variant="outline" 
+                                onClick={() => fileInputRefs.current[globalIndex]?.click()}
+                                disabled={uploadingIndex === globalIndex}
+                              >
+                                {uploadingIndex === globalIndex ? (
+                                  <RefreshCw className="w-4 h-4 animate-spin" />
+                                ) : (
+                                  <ImagePlus className="w-4 h-4" />
+                                )}
+                              </Button>
+                            )}
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              ref={el => fileInputRefs.current[globalIndex] = el}
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) handlePhotoUpload(globalIndex, file);
+                              }}
+                            />
+                            <Input
+                              placeholder="Nombre del ítem"
+                              value={supply.item_name}
+                              onChange={(e) => updateSupply(globalIndex, "item_name", e.target.value)}
+                              className="flex-1"
+                            />
+                          </div>
                           <Input
                             placeholder="Tipo (Cristalería, Vajilla...)"
                             value={supply.item_type}
@@ -282,6 +344,13 @@ const SuppliesSection = ({ eventId }: SuppliesSectionProps) => {
                               value={supply.quantity}
                               onChange={(e) => updateSupply(globalIndex, "quantity", parseFloat(e.target.value) || 0)}
                             />
+                            <Input
+                              type="number"
+                              placeholder="Precio €"
+                              value={supply.unit_price || ""}
+                              onChange={(e) => updateSupply(globalIndex, "unit_price", parseFloat(e.target.value) || 0)}
+                              className="w-24"
+                            />
                             <Button size="icon" variant="destructive" onClick={() => removeSupply(globalIndex)}>
                               <Trash2 className="w-4 h-4" />
                             </Button>
@@ -290,15 +359,33 @@ const SuppliesSection = ({ eventId }: SuppliesSectionProps) => {
                       ) : (
                         <>
                           <div className="flex items-center gap-3">
-                            <Package className="w-5 h-5 text-primary" />
+                            {supply.photo_url ? (
+                              <img 
+                                src={supply.photo_url} 
+                                alt={supply.item_name} 
+                                className="w-10 h-10 rounded object-cover"
+                              />
+                            ) : (
+                              <Package className="w-5 h-5 text-primary" />
+                            )}
                             <div>
                               <div className="font-semibold text-foreground">{supply.item_name}</div>
+                              {supply.unit_price && supply.unit_price > 0 && (
+                                <div className="text-xs text-muted-foreground">{supply.unit_price}€/ud</div>
+                              )}
                               {supply.notes && (
                                 <div className="text-xs text-muted-foreground">{supply.notes}</div>
                               )}
                             </div>
                           </div>
-                          <div className="text-xl font-bold text-primary">{supply.quantity}</div>
+                          <div className="text-right">
+                            <div className="text-xl font-bold text-primary">{supply.quantity}</div>
+                            {supply.unit_price && supply.unit_price > 0 && (
+                              <div className="text-xs text-muted-foreground">
+                                {(supply.quantity * supply.unit_price).toFixed(2)}€
+                              </div>
+                            )}
+                          </div>
                         </>
                       )}
                     </div>

@@ -695,7 +695,9 @@ export type Database = {
           item_name: string
           item_type: string | null
           notes: string | null
+          photo_url: string | null
           quantity: number
+          unit_price: number | null
         }
         Insert: {
           created_at?: string
@@ -704,7 +706,9 @@ export type Database = {
           item_name: string
           item_type?: string | null
           notes?: string | null
+          photo_url?: string | null
           quantity: number
+          unit_price?: number | null
         }
         Update: {
           created_at?: string
@@ -713,7 +717,9 @@ export type Database = {
           item_name?: string
           item_type?: string | null
           notes?: string | null
+          photo_url?: string | null
           quantity?: number
+          unit_price?: number | null
         }
         Relationships: [
           {
