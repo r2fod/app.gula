@@ -11,7 +11,7 @@ import { Calendar, MapPin, Users, Plus, LogOut, Loader2, UtensilsCrossed, Buildi
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import ProfileSettings from "@/components/ProfileSettings";
-import { useEvents } from "@/hooks/useEvents";
+import { useEvents } from "@/features/events/hooks/useEvents";
 
 interface Event {
   id: string;

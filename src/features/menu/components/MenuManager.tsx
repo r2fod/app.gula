@@ -7,9 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Plus, UtensilsCrossed } from "lucide-react";
 import type { Json } from "@/integrations/supabase/types";
-import { MenuList } from "./menu/MenuList";
-import { MenuForm } from "./menu/MenuForm";
-import { MenuItem } from "./menu/MenuItemList";
+import { MenuList } from "./MenuList";
+import { MenuForm } from "./MenuForm";
+import { MenuItem } from "./MenuItemList";
 
 export type { MenuItem };
 

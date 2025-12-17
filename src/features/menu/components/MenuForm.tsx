@@ -10,7 +10,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Upload, FileText, Image, Save } from "lucide-react";
 import { MenuItemList, MenuItem } from "./MenuItemList";
 import { MENU_TYPES } from "./MenuList";
-import type { Menu } from "../MenuManager";
+import type { Menu } from "./MenuManager";
 import { menuSchema, dishSchema } from "@/lib/validations";
 import { useToast } from "@/hooks/use-toast";
 

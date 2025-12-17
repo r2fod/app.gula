@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AlertCircle, Armchair, Flower, Edit, Save, X, Plus, Trash2 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { useRequirements, RequirementItem } from "@/hooks/useRequirements";
+import { useRequirements, RequirementItem } from "@/features/events/hooks/useRequirements";
 import { allergySchema, furnitureSchema, otherRequirementSchema } from "@/lib/validations";
 import { useToast } from "@/hooks/use-toast";
 

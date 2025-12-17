@@ -1,10 +1,11 @@
+import { useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Edit2, Save, X, Plus, Trash2, Wine, Beer, GlassWater, RefreshCw } from "lucide-react";
+import { Edit2, Save, X, Plus, Trash2, Wine, Beer, GlassWater, RefreshCw, ImagePlus } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
-import { useBeverages, Beverage, DEFAULT_BEVERAGES } from "@/hooks/useBeverages";
+import { useBeverages, Beverage } from "@/features/events/hooks/useBeverages";
 import { getBeverageType } from "@/lib/calculations";
 
 interface BeveragesSectionProps {
@@ -18,21 +19,23 @@ const CATEGORIES = [
   { key: 'refrescos', label: 'Refrescos', icon: Beer },
 ];
 
-// Componente principal para la gestión de bebidas.
-// Permite visualizar, editar, añadir y eliminar bebidas, así como recalcular cantidades según PAX.
 export default function BeveragesSection({ eventId, totalGuests }: BeveragesSectionProps) {
   const {
-    beverages, // Datos guardados en BD (para revertir)
+    beverages,
     formData,
     setFormData,
     loading,
     barHours,
     isEditing,
     setIsEditing,
+    uploadingIndex,
     generateDefaultBeverages,
     recalculateQuantities,
     handleSave,
+    handlePhotoUpload
   } = useBeverages(eventId, totalGuests);
+
+  const fileInputRefs = useRef<{ [key: number]: HTMLInputElement | null }>({});
 
   const addItem = (category: string) => {
     setFormData([...formData, { category, item_name: "", quantity: 0, unit_price: 0, is_extra: true }]);
@@ -63,9 +66,6 @@ export default function BeveragesSection({ eventId, totalGuests }: BeveragesSect
     return formData.reduce((sum, b) => sum + (b.quantity * b.unit_price), 0);
   };
 
-  // Renderiza la lista de items.
-  // En modo edición: Muestra inputs y permite modificar valores. Diseño responsive (Card en móvil, Grid en desktop).
-  // En modo visualización: Muestra lista de lectura.
   const renderItems = (category: string) => {
     const items = formData.filter(b => b.category === category);
 
@@ -80,7 +80,6 @@ export default function BeveragesSection({ eventId, totalGuests }: BeveragesSect
       );
     }
 
-    // Agrupar por tipo de bebida (Vinos, Refrescos, etc) solo para efectos visuales
     const groupedByType = items.reduce((acc, item) => {
       const type = getBeverageType(item.item_name);
       if (!acc[type]) acc[type] = [];
@@ -92,14 +91,12 @@ export default function BeveragesSection({ eventId, totalGuests }: BeveragesSect
       <div className="space-y-6">
         {Object.entries(groupedByType).map(([type, typeItems]) => (
           <div key={type} className="space-y-2">
-            {/* Tipo Header */}
             <h3 className="text-sm font-semibold text-primary border-b border-primary/30 pb-1">
               {type}
             </h3>
 
-            {/* Header de columnas (solo en modo edición, oculto en móvil) */}
             {isEditing && (
-              <div className="hidden md:grid grid-cols-12 gap-2 text-xs text-muted-foreground font-medium pb-2 border-b border-border">
+              <div className="hidden md:grid grid-cols-12 gap-2 text-xs text-muted-foreground font-medium pb-2 border-b border-border pl-[50px]">
                 <span className="col-span-4">Nombre</span>
                 <span className="col-span-2">Cantidad</span>
                 <span className="col-span-2">€/ud</span>
@@ -109,16 +106,71 @@ export default function BeveragesSection({ eventId, totalGuests }: BeveragesSect
               </div>
             )}
 
-            {/* Items del tipo */}
             {typeItems.map((item, idx) => {
               const globalIndex = formData.findIndex(b => b === item);
               const total = item.quantity * item.unit_price;
 
               return isEditing ? (
-                // Diseño responsive: Card apilada en móvil, Fila en Desktop
                 <div key={idx} className="flex flex-col md:grid md:grid-cols-12 gap-2 items-start md:items-center bg-muted/30 p-2 md:p-0 rounded md:bg-transparent">
-                  {/* Mobile: Nombre ancho completo */}
-                  <div className="w-full md:col-span-4">
+                  {/* Photo Upload Area */}
+                  <div className="hidden md:flex justify-center w-[40px]">
+                    {item.photo_url ? (
+                      <img
+                        src={item.photo_url}
+                        alt={item.item_name}
+                        className="w-8 h-8 rounded object-cover cursor-pointer hover:opacity-80"
+                        onClick={() => fileInputRefs.current[globalIndex]?.click()}
+                        title="Cambiar imagen"
+                      />
+                    ) : (
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-8 w-8"
+                        onClick={() => fileInputRefs.current[globalIndex]?.click()}
+                        disabled={uploadingIndex === globalIndex}
+                        title="Subir imagen"
+                      >
+                        {uploadingIndex === globalIndex ? (
+                          <RefreshCw className="w-4 h-4 animate-spin text-muted-foreground" />
+                        ) : (
+                          <ImagePlus className="w-4 h-4 text-muted-foreground" />
+                        )}
+                      </Button>
+                    )}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      ref={el => fileInputRefs.current[globalIndex] = el}
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) handlePhotoUpload(globalIndex, file);
+                      }}
+                    />
+                  </div>
+
+                  <div className="w-full md:col-span-4 flex gap-2 items-center">
+                    {/* Mobile Photo Upload */}
+                    <div className="md:hidden">
+                      {item.photo_url ? (
+                        <img
+                          src={item.photo_url}
+                          alt={item.item_name}
+                          className="w-10 h-10 rounded object-cover cursor-pointer"
+                          onClick={() => fileInputRefs.current[globalIndex]?.click()}
+                        />
+                      ) : (
+                        <Button
+                          size="icon"
+                          variant="outline"
+                          onClick={() => fileInputRefs.current[globalIndex]?.click()}
+                        >
+                          <ImagePlus className="w-4 h-4" />
+                        </Button>
+                      )}
+                    </div>
+
                     <Input
                       className="h-8 text-sm w-full"
                       placeholder="Nombre"
@@ -127,7 +179,6 @@ export default function BeveragesSection({ eventId, totalGuests }: BeveragesSect
                     />
                   </div>
 
-                  {/* Mobile: Row with Qty, Price, Total */}
                   <div className="grid grid-cols-3 gap-2 w-full md:col-span-6 md:grid-cols-6 md:gap-2 items-center">
                     <Input
                       className="h-8 text-sm md:col-span-2"
@@ -147,7 +198,6 @@ export default function BeveragesSection({ eventId, totalGuests }: BeveragesSect
                     <span className="text-sm font-medium text-right md:text-left md:col-span-2">{total.toFixed(2)}€</span>
                   </div>
 
-                  {/* Mobile: Extra & Actions */}
                   <div className="flex justify-between w-full md:col-span-2 md:justify-start items-center gap-2">
                     <div className="flex items-center gap-2 md:justify-center md:w-full">
                       <span className="text-xs md:hidden">Extra?</span>
@@ -168,11 +218,25 @@ export default function BeveragesSection({ eventId, totalGuests }: BeveragesSect
                 </div>
               ) : (
                 <div key={idx} className={`flex flex-col sm:flex-row justify-between items-start sm:items-center py-2 border-b border-border last:border-0 ${item.is_extra ? 'bg-primary/5 px-2 rounded' : ''}`}>
-                  <span className="font-medium text-sm mb-1 sm:mb-0">
-                    {item.item_name}
-                    {item.is_extra && <span className="ml-2 text-xs text-primary">(Extra)</span>}
-                  </span>
-                  <div className="flex gap-4 text-sm w-full sm:w-auto justify-between sm:justify-end">
+                  <div className="flex items-center gap-3 mb-1 sm:mb-0">
+                    {item.photo_url ? (
+                      <img
+                        src={item.photo_url}
+                        alt={item.item_name}
+                        className="w-8 h-8 rounded object-cover border border-border"
+                      />
+                    ) : (
+                      <div className="w-8 h-8 rounded bg-muted flex items-center justify-center">
+                        <Wine className="w-4 h-4 text-muted-foreground opacity-20" />
+                      </div>
+                    )}
+                    <span className="font-medium text-sm">
+                      {item.item_name}
+                      {item.is_extra && <span className="ml-2 text-xs text-primary">(Extra)</span>}
+                    </span>
+                  </div>
+
+                  <div className="flex gap-4 text-sm w-full sm:w-auto justify-between sm:justify-end pl-[44px] sm:pl-0">
                     <span className="w-16 text-right">{item.quantity} ud</span>
                     <span className="w-16 text-right text-muted-foreground">{item.unit_price.toFixed(2)}€/ud</span>
                     <span className="w-20 text-right font-semibold">{total.toFixed(2)}€</span>

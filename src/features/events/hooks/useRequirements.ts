@@ -1,6 +1,7 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 export interface RequirementItem {
   id?: string;
@@ -8,42 +9,53 @@ export interface RequirementItem {
   [key: string]: any;
 }
 
-// Hook para gestionar requisitos especiales (alergias, mobiliario, etc).
+// Hook para gestionar requisitos especiales (alergias, mobiliario, etc) usando React Query.
 export const useRequirements = (eventId: string) => {
-  const [allergies, setAllergies] = useState<RequirementItem[]>([]);
-  const [furniture, setFurniture] = useState<RequirementItem[]>([]);
-  const [other, setOther] = useState<RequirementItem[]>([]);
-  const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [loadingSave, setLoadingSave] = useState(false);
 
-  // Carga todos los requisitos (alergias, mobiliario, otros) en paralelo.
-  const fetchAll = useCallback(async () => {
-    try {
-      setLoading(true);
-      const [allergiesRes, furnitureRes, otherRes] = await Promise.all([
-        supabase.from("allergies").select("*").eq("event_id", eventId),
-        supabase.from("furniture").select("*").eq("event_id", eventId),
-        supabase.from("other_requirements").select("*").eq("event_id", eventId),
-      ]);
+  // --- FETCHER FUNCTIONS ---
 
-      if (allergiesRes.error) throw allergiesRes.error;
-      if (furnitureRes.error) throw furnitureRes.error;
-      if (otherRes.error) throw otherRes.error;
+  const getAllergies = async () => {
+    const { data, error } = await supabase.from("allergies").select("*").eq("event_id", eventId);
+    if (error) throw error;
+    return data as RequirementItem[];
+  };
 
-      setAllergies(allergiesRes.data || []);
-      setFurniture(furnitureRes.data || []);
-      setOther(otherRes.data || []);
-    } catch (error) {
-      console.error("Error fetching requirements:", error);
-      toast({ title: "Error", description: "Error al cargar requisitos", variant: "destructive" });
-    } finally {
-      setLoading(false);
-    }
-  }, [eventId, toast]);
+  const getFurniture = async () => {
+    const { data, error } = await supabase.from("furniture").select("*").eq("event_id", eventId);
+    if (error) throw error;
+    return data as RequirementItem[];
+  };
 
-  useEffect(() => {
-    fetchAll();
-  }, [fetchAll]);
+  const getOther = async () => {
+    const { data, error } = await supabase.from("other_requirements").select("*").eq("event_id", eventId);
+    if (error) throw error;
+    return data as RequirementItem[];
+  };
+
+  // --- QUERIES ---
+  // Realizamos las peticiones en paralelo y caché automático
+
+  const { data: allergies = [], isLoading: loadingAllergies } = useQuery({
+    queryKey: ['requirements', 'allergies', eventId],
+    queryFn: getAllergies,
+  });
+
+  const { data: furniture = [], isLoading: loadingFurniture } = useQuery({
+    queryKey: ['requirements', 'furniture', eventId],
+    queryFn: getFurniture,
+  });
+
+  const { data: other = [], isLoading: loadingOther } = useQuery({
+    queryKey: ['requirements', 'other', eventId],
+    queryFn: getOther,
+  });
+
+  const loading = loadingAllergies || loadingFurniture || loadingOther || loadingSave;
+
+  // --- ACTIONS ---
 
   /**
    * Sincroniza una categoría específica con la base de datos.
@@ -93,6 +105,7 @@ export const useRequirements = (eventId: string) => {
     newOther: RequirementItem[]
   ) => {
     try {
+      setLoadingSave(true);
       await Promise.all([
         syncCategory("allergies", newAllergies, allergies),
         syncCategory("furniture", newFurniture, furniture),
@@ -100,12 +113,19 @@ export const useRequirements = (eventId: string) => {
       ]);
 
       toast({ title: "Guardado", description: "Requisitos actualizados correctamente" });
-      fetchAll(); // Refresh state
+
+      // Invalidar todas las queries de requisitos para este evento para refrescar los datos
+      queryClient.invalidateQueries({ queryKey: ['requirements', 'allergies', eventId] });
+      queryClient.invalidateQueries({ queryKey: ['requirements', 'furniture', eventId] });
+      queryClient.invalidateQueries({ queryKey: ['requirements', 'other', eventId] });
+
       return true;
     } catch (error) {
       console.error("Error saving requirements:", error);
       toast({ title: "Error", description: "No se pudieron guardar los cambios", variant: "destructive" });
       return false;
+    } finally {
+      setLoadingSave(false);
     }
   };
 
@@ -115,6 +135,11 @@ export const useRequirements = (eventId: string) => {
     other,
     loading,
     saveAll,
-    refetch: fetchAll
+    // La función refetch ahora invalida todas las categorías para recargar
+    refetch: () => {
+      queryClient.invalidateQueries({ queryKey: ['requirements', 'allergies', eventId] });
+      queryClient.invalidateQueries({ queryKey: ['requirements', 'furniture', eventId] });
+      queryClient.invalidateQueries({ queryKey: ['requirements', 'other', eventId] });
+    }
   };
 };

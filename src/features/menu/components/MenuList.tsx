@@ -1,7 +1,7 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Edit2, Trash2, Eye, UtensilsCrossed } from "lucide-react";
-import type { Menu } from "../MenuManager";
+import type { Menu } from "./MenuManager";
 
 interface MenuListProps {
   menus: Menu[];

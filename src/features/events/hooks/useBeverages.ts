@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { beverageSchema } from "@/lib/validations";
 import { z } from "zod";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 export interface Beverage {
   id?: string;
@@ -12,6 +13,7 @@ export interface Beverage {
   unit_price: number;
   notes?: string;
   is_extra?: boolean;
+  photo_url?: string;
 }
 
 // Lista de bebidas predefinidas con sus ratios por persona y precios.
@@ -61,40 +63,81 @@ export const DEFAULT_BEVERAGES: { category: string; item_name: string; ratio_per
   { category: 'refrescos', item_name: 'Limones', ratio_per_pax: 0.025, unit_price: 2.50, per_bar_hour: true },
 ];
 
+/**
+ * Hook personalizado para gestión de bebidas con React Query.
+ * Maneja fetching, caché, actualizaciones en tiempo real y cálculos.
+ */
 export const useBeverages = (eventId: string, totalGuests: number) => {
   const { toast } = useToast();
-  const [beverages, setBeverages] = useState<Beverage[]>([]);
+  const queryClient = useQueryClient();
   const [formData, setFormData] = useState<Beverage[]>([]);
-  const [loading, setLoading] = useState(true);
   const [barHours, setBarHours] = useState(2);
   const [isEditing, setIsEditing] = useState(false);
+  const [uploadingIndex, setUploadingIndex] = useState<number | null>(null);
 
-  // Initial fetch
+  // --- FETCHER FUNCTIONS ---
+
+  const getBeverages = async () => {
+    const { data, error } = await supabase
+      .from("beverages")
+      .select("*")
+      .eq("event_id", eventId);
+
+    if (error) throw error;
+    // @ts-ignore: Assuming photo_url exists in DB or will exist
+    return data as Beverage[];
+  };
+
+  const getTimings = async () => {
+    const { data, error } = await supabase
+      .from("event_timings")
+      .select("bar_hours, bar_start, bar_end")
+      .eq("event_id", eventId)
+      .single();
+
+    if (error && error.code !== 'PGRST116') throw error;
+    return data;
+  };
+
+  // --- QUERIES ---
+
+  const { data: beverages = [], isLoading: loadingBeverages } = useQuery({
+    queryKey: ['beverages', eventId],
+    queryFn: getBeverages,
+  });
+
+  const { data: timings } = useQuery({
+    queryKey: ['timings', eventId],
+    queryFn: getTimings,
+  });
+
+  // --- EFFECTS ---
+
   useEffect(() => {
-    fetchBeverages();
-    fetchBarHours();
-  }, [eventId]);
+    if (beverages && !isEditing) {
+      setFormData(beverages);
+    }
+  }, [beverages, isEditing]);
 
-  // Suscripción a cambios en tiempo real en Supabase para mantener los datos sincronizados
-  // Escucha cambios en 'beverages' para actualizar la lista y en 'event_timings' para recalcular horas de barra
+  useEffect(() => {
+    if (timings) {
+      if (timings.bar_hours) setBarHours(timings.bar_hours);
+      else if (timings.bar_start && timings.bar_end) calculateAndSetBarHours(timings);
+    }
+  }, [timings]);
+
   useEffect(() => {
     const beveragesChannel = supabase
       .channel('beverages-changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'beverages', filter: `event_id=eq.${eventId}` },
-        () => fetchBeverages()
+        () => queryClient.invalidateQueries({ queryKey: ['beverages', eventId] })
       )
       .subscribe();
 
     const timingsChannel = supabase
       .channel('event-timings-changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'event_timings', filter: `event_id=eq.${eventId}` },
-        (payload) => {
-          if (payload.new) {
-            const newData = payload.new as any;
-            if (newData.bar_hours) setBarHours(newData.bar_hours);
-            else if (newData.bar_start && newData.bar_end) calculateAndSetBarHours(newData);
-          }
-        }
+        () => queryClient.invalidateQueries({ queryKey: ['timings', eventId] })
       )
       .subscribe();
 
@@ -102,46 +145,10 @@ export const useBeverages = (eventId: string, totalGuests: number) => {
       supabase.removeChannel(beveragesChannel);
       supabase.removeChannel(timingsChannel);
     };
-  }, [eventId]);
+  }, [eventId, queryClient]);
 
-  const fetchBeverages = async () => {
-    try {
-      const { data, error } = await supabase
-        .from("beverages")
-        .select("*")
-        .eq("event_id", eventId);
+  // --- HELPERS ---
 
-      if (error) throw error;
-
-      if (data) {
-        setBeverages(data);
-        if (!isEditing) setFormData(data);
-      }
-    } catch (err) {
-      console.error('Error fetching beverages:', err);
-      toast({ title: "Error", description: "No se pudieron cargar las bebidas", variant: "destructive" });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchBarHours = async () => {
-    const { data, error } = await supabase
-      .from("event_timings")
-      .select("bar_hours, bar_start, bar_end")
-      .eq("event_id", eventId)
-      .single();
-
-    if (!error && data) {
-      if (data.bar_hours) setBarHours(data.bar_hours);
-      else if (data.bar_start && data.bar_end) calculateAndSetBarHours(data);
-    }
-  };
-
-  /**
-   * Calcula la duración de la barra libre basándose en la hora de inicio y fin.
-   * Maneja el caso de cruce de medianoche (ej. 23:00 a 02:00).
-   */
   const calculateAndSetBarHours = (data: any) => {
     const start = data.bar_start.split(':');
     const end = data.bar_end.split(':');
@@ -151,10 +158,6 @@ export const useBeverages = (eventId: string, totalGuests: number) => {
     setBarHours(Math.max(1, Math.round(endHours - startHours)));
   };
 
-  /**
-   * Calcula la cantidad necesaria de una bebida.
-   * Fórmula: Ratio * PAX * (Horas de barra si aplica)
-   */
   const calculateQuantity = (item: { ratio_per_pax: number; per_bar_hour?: boolean }) => {
     if (item.per_bar_hour) {
       return Math.ceil(item.ratio_per_pax * totalGuests * barHours);
@@ -162,10 +165,8 @@ export const useBeverages = (eventId: string, totalGuests: number) => {
     return Math.ceil(item.ratio_per_pax * totalGuests);
   };
 
-  /**
-   * Genera la lista inicial de bebidas calculando cantidades automáticas
-   * basándose en los ratios predefinidos y los datos del evento.
-   */
+  // --- ACTIONS ---
+
   const generateDefaultBeverages = () => {
     const defaultItems: Beverage[] = DEFAULT_BEVERAGES.map(item => ({
       category: item.category,
@@ -193,10 +194,6 @@ export const useBeverages = (eventId: string, totalGuests: number) => {
     toast({ title: "Cantidades actualizadas", description: "Basado en los nuevos datos del evento" });
   };
 
-  /**
-   * Valida y guarda las bebidas en la base de datos.
-   * Estrategia: Borrar todas las bebidas existentes del evento e insertar las nuevas (Bulk Insert).
-   */
   const handleSave = async () => {
     try {
       const validatedData = formData.map((item, index) => {
@@ -227,6 +224,7 @@ export const useBeverages = (eventId: string, totalGuests: number) => {
           unit_price: item.unit_price,
           notes: item.notes || null,
           is_extra: item.is_extra || false,
+          photo_url: item.photo_url || null,
         }));
 
         const { error: insertError } = await supabase.from("beverages").insert(recordsToInsert);
@@ -235,7 +233,7 @@ export const useBeverages = (eventId: string, totalGuests: number) => {
 
       toast({ title: "✅ Bebidas guardadas correctamente" });
       setIsEditing(false);
-      fetchBeverages();
+      queryClient.invalidateQueries({ queryKey: ['beverages', eventId] });
     } catch (err) {
       console.error('Error saving beverages:', err);
       const errorMessage = err instanceof Error ? err.message : "Error al guardar las bebidas";
@@ -243,16 +241,41 @@ export const useBeverages = (eventId: string, totalGuests: number) => {
     }
   };
 
+  const handlePhotoUpload = async (index: number, file: File) => {
+    setUploadingIndex(index);
+    const fileExt = file.name.split('.').pop();
+    const fileName = `beverage-${eventId}-${Date.now()}.${fileExt}`;
+
+    const { error } = await supabase.storage.from('menus').upload(fileName, file);
+
+    if (error) {
+      toast({ title: "Error", description: "No se pudo subir la imagen", variant: "destructive" });
+      setUploadingIndex(null);
+      return;
+    }
+
+    const { data: urlData } = supabase.storage.from('menus').getPublicUrl(fileName);
+
+    // Actualizar solo localmente en formData
+    const updated = [...formData];
+    updated[index] = { ...updated[index], photo_url: urlData.publicUrl };
+    setFormData(updated);
+
+    setUploadingIndex(null);
+  };
+
   return {
     beverages,
     formData,
     setFormData,
-    loading,
+    loading: loadingBeverages,
     barHours,
     isEditing,
     setIsEditing,
+    uploadingIndex,
     generateDefaultBeverages,
     recalculateQuantities,
     handleSave,
+    handlePhotoUpload
   };
 };

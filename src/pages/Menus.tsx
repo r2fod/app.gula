@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
-import MenuManager from "@/components/MenuManager";
+import MenuManager from "@/features/menu/components/MenuManager";
 import AIAssistant from "@/components/AIAssistant";
 
 const Menus = () => {
