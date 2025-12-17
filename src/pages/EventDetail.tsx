@@ -131,7 +131,7 @@ const EventDetail = () => {
         <BeveragesSection eventId={event.id} totalGuests={event.total_guests} />
 
         {/* Sección 5: Cristalería y Suministros */}
-        <SuppliesSection eventId={event.id} />
+        <SuppliesSection eventId={event.id} totalGuests={event.total_guests} />
 
         {/* Sección 6: Equipamiento de sala y cocina */}
         <RoomEquipmentSection eventId={event.id} />
