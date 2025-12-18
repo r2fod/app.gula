@@ -4,6 +4,7 @@ import { useToast } from "@/hooks/use-toast";
 import { beverageSchema } from "@/lib/validations";
 import { z } from "zod";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "@/contexts/AuthContext";
 
 export interface Beverage {
   id?: string;
@@ -68,6 +69,7 @@ export const DEFAULT_BEVERAGES: { category: string; item_name: string; ratio_per
  * Maneja fetching, caché, actualizaciones en tiempo real y cálculos.
  */
 export const useBeverages = (eventId: string, totalGuests: number) => {
+  const { isDemo, user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [formData, setFormData] = useState<Beverage[]>([]);
@@ -78,6 +80,13 @@ export const useBeverages = (eventId: string, totalGuests: number) => {
   // --- FETCHER FUNCTIONS ---
 
   const getBeverages = async () => {
+    if (isDemo) {
+      const saved = localStorage.getItem(`gula_demo_beverages_${eventId}`);
+      return saved ? JSON.parse(saved) : [];
+    }
+
+    if (!user) return [];
+
     const { data, error } = await supabase
       .from("beverages")
       .select("*")
@@ -88,6 +97,19 @@ export const useBeverages = (eventId: string, totalGuests: number) => {
   };
 
   const getTimings = async () => {
+    if (isDemo) {
+      // Intentar obtener de los datos del evento mock
+      const savedEvents = localStorage.getItem("gula_demo_events");
+      if (savedEvents) {
+        const events = JSON.parse(savedEvents);
+        const event = events.find((e: any) => e.id === eventId);
+        if (event) return { bar_hours: event.bar_hours || 2 };
+      }
+      return { bar_hours: 2 };
+    }
+
+    if (!user) return null;
+
     const { data, error } = await supabase
       .from("event_timings")
       .select("bar_hours, bar_start, bar_end")
@@ -101,12 +123,12 @@ export const useBeverages = (eventId: string, totalGuests: number) => {
   // --- QUERIES ---
 
   const { data: beverages = [], isLoading: loadingBeverages } = useQuery({
-    queryKey: ['beverages', eventId],
+    queryKey: ['beverages', eventId, isDemo],
     queryFn: getBeverages,
   });
 
   const { data: timings } = useQuery({
-    queryKey: ['timings', eventId],
+    queryKey: ['timings', eventId, isDemo],
     queryFn: getTimings,
   });
 
@@ -126,17 +148,19 @@ export const useBeverages = (eventId: string, totalGuests: number) => {
   }, [timings]);
 
   useEffect(() => {
+    if (isDemo || !user) return;
+
     const beveragesChannel = supabase
       .channel('beverages-changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'beverages', filter: `event_id=eq.${eventId}` },
-        () => queryClient.invalidateQueries({ queryKey: ['beverages', eventId] })
+        () => queryClient.invalidateQueries({ queryKey: ['beverages', eventId, isDemo] })
       )
       .subscribe();
 
     const timingsChannel = supabase
       .channel('event-timings-changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'event_timings', filter: `event_id=eq.${eventId}` },
-        () => queryClient.invalidateQueries({ queryKey: ['timings', eventId] })
+        () => queryClient.invalidateQueries({ queryKey: ['timings', eventId, isDemo] })
       )
       .subscribe();
 
@@ -144,11 +168,12 @@ export const useBeverages = (eventId: string, totalGuests: number) => {
       supabase.removeChannel(beveragesChannel);
       supabase.removeChannel(timingsChannel);
     };
-  }, [eventId, queryClient]);
+  }, [eventId, queryClient, isDemo, user]);
 
   // --- HELPERS ---
 
   const calculateAndSetBarHours = (data: any) => {
+    if (!data || !data.bar_start || !data.bar_end) return;
     const start = data.bar_start.split(':');
     const end = data.bar_end.split(':');
     const startHours = parseInt(start[0]) + parseInt(start[1]) / 60;
@@ -166,7 +191,7 @@ export const useBeverages = (eventId: string, totalGuests: number) => {
 
   // --- ACTIONS ---
 
-  const generateDefaultBeverages = () => {
+  const generateDefaultBeverages = async () => {
     const defaultItems: Beverage[] = DEFAULT_BEVERAGES.map(item => ({
       category: item.category,
       item_name: item.item_name,
@@ -175,6 +200,12 @@ export const useBeverages = (eventId: string, totalGuests: number) => {
       is_extra: false,
     }));
     setFormData(defaultItems);
+
+    // Si no estamos editando, guardamos directamente (igual que en useSupplies)
+    if (!isEditing) {
+      await handleSave(defaultItems);
+    }
+
     toast({
       title: "Bebidas generadas",
       description: `Cantidades calculadas para ${totalGuests} invitados y ${barHours}h de barra libre`
@@ -193,9 +224,10 @@ export const useBeverages = (eventId: string, totalGuests: number) => {
     toast({ title: "Cantidades actualizadas", description: "Basado en los nuevos datos del evento" });
   };
 
-  const handleSave = async () => {
+  const handleSave = async (dataToSave?: Beverage[]) => {
     try {
-      const validatedData = formData.map((item, index) => {
+      const targetData = dataToSave || formData;
+      const validatedData = targetData.map((item, index) => {
         try {
           return beverageSchema.parse({
             ...item,
@@ -210,6 +242,16 @@ export const useBeverages = (eventId: string, totalGuests: number) => {
           throw error;
         }
       });
+
+      if (isDemo) {
+        localStorage.setItem(`gula_demo_beverages_${eventId}`, JSON.stringify(validatedData));
+        toast({ title: "✅ Bebidas guardadas correctamente (Modo Demo)" });
+        setIsEditing(false);
+        queryClient.invalidateQueries({ queryKey: ['beverages', eventId, isDemo] });
+        return;
+      }
+
+      if (!user) throw new Error("Debes iniciar sesión para realizar esta acción de forma permanente.");
 
       const { error: deleteError } = await supabase.from("beverages").delete().eq("event_id", eventId);
       if (deleteError) throw deleteError;
@@ -232,7 +274,7 @@ export const useBeverages = (eventId: string, totalGuests: number) => {
 
       toast({ title: "✅ Bebidas guardadas correctamente" });
       setIsEditing(false);
-      queryClient.invalidateQueries({ queryKey: ['beverages', eventId] });
+      queryClient.invalidateQueries({ queryKey: ['beverages', eventId, isDemo] });
     } catch (err) {
       console.error('Error saving beverages:', err);
       let errorMessage = err instanceof Error ? err.message : "Error al guardar las bebidas";
@@ -247,6 +289,16 @@ export const useBeverages = (eventId: string, totalGuests: number) => {
   };
 
   const handlePhotoUpload = async (index: number, file: File) => {
+    if (isDemo) {
+      toast({ title: "Simulación de subida", description: "En modo demo las fotos solo se previsualizan temporalmente." });
+      // Crear blob local para simular la subida
+      const localUrl = URL.createObjectURL(file);
+      const updated = [...formData];
+      updated[index] = { ...updated[index], photo_url: localUrl };
+      setFormData(updated);
+      return;
+    }
+
     setUploadingIndex(index);
     const fileExt = file.name.split('.').pop();
     const fileName = `beverage-${eventId}-${Date.now()}.${fileExt}`;

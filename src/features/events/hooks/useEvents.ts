@@ -18,13 +18,21 @@ export interface Event {
 
 // Hook para gestionar la lista de eventos del usuario de forma reactiva usando React Query.
 export function useEvents() {
-  const { user } = useAuth();
+  const { user, isDemo } = useAuth();
   const queryClient = useQueryClient();
 
   // Función de fetch para React Query
   const getEvents = async () => {
+    // Si estamos en modo demo, recuperamos los eventos del localStorage
+    if (isDemo) {
+      const savedEvents = localStorage.getItem("gula_demo_events");
+      return savedEvents ? JSON.parse(savedEvents) : [];
+    }
+
+    // Si no hay usuario ni es demo, devolvemos lista vacía
     if (!user) return [];
 
+    // Consulta a Supabase para obtener los eventos del usuario real
     const { data, error } = await supabase
       .from("events")
       .select("*")
@@ -41,18 +49,19 @@ export function useEvents() {
    * Uso de useQuery:
    * - 'events' es la key de la caché.
    * - getEvents es la función que hace la petición.
-   * - enabled: !!user asegura que solo se ejecute si hay usuario logueado.
+   * - enabled asegura que solo se ejecute si hay usuario o estamos en modo demo.
    */
   const { data: events = [], isLoading: loading, refetch } = useQuery({
-    queryKey: ['events', user?.id],
+    queryKey: ['events', user?.id, isDemo],
     queryFn: getEvents,
-    enabled: !!user,
+    enabled: !!user || isDemo,
   });
 
   useEffect(() => {
-    if (user) {
+    // Suscripción en tiempo real solo para usuarios reales
+    if (user && !isDemo) {
       // Suscripción en tiempo real con Supabase
-      // Cuando hay cambios, invalidamos la cache para que React Query refesque los datos automáticamente.
+      // Cuando hay cambios, invalidamos la cache para que React Query refresque los datos automáticamente.
       const channel = supabase
         .channel('events-list-changes')
         .on(
@@ -65,7 +74,7 @@ export function useEvents() {
           },
           () => {
             console.log('🔄 Sincronizando eventos...');
-            queryClient.invalidateQueries({ queryKey: ['events', user.id] });
+            queryClient.invalidateQueries({ queryKey: ['events', user.id, isDemo] });
           }
         )
         .subscribe();
@@ -74,7 +83,7 @@ export function useEvents() {
         supabase.removeChannel(channel);
       };
     }
-  }, [user, queryClient]);
+  }, [user, isDemo, queryClient]);
 
   return {
     events,

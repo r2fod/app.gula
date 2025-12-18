@@ -28,6 +28,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { useBeverages, Beverage } from "@/features/events/hooks/useBeverages";
 import { getBeverageType } from "@/lib/calculations";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface BeveragesSectionProps {
   eventId: string;
@@ -44,6 +45,7 @@ export default function BeveragesSection({
   eventId,
   totalGuests,
 }: BeveragesSectionProps) {
+  const { isDemo } = useAuth();
   const { toast } = useToast();
   const {
     beverages,
@@ -84,9 +86,8 @@ export default function BeveragesSection({
         const extraAmount = Math.max(1, Math.ceil(currentQuantity * 0.1));
         updated[index].quantity = currentQuantity + extraAmount;
         updated[index].is_extra = true;
-        updated[index].notes = `${
-          updated[index].notes || ""
-        }|BASE:${currentQuantity}`.trim();
+        updated[index].notes = `${updated[index].notes || ""
+          }|BASE:${currentQuantity}`.trim();
         toast({
           title: "Cantidad extra añadida",
           description: `Se han añadido ${extraAmount} unidades extra (10% de ${currentQuantity}).`,
@@ -146,7 +147,7 @@ export default function BeveragesSection({
     if (!isEditing && items.length === 0) {
       return (
         <div className="text-center py-10 bg-muted/20 rounded-lg border border-dashed border-muted-foreground/25">
-          <Wine className="w-10 h-10 mx-auto text-muted-foreground mb-3 opacity-50" />
+          <Wine className="w-12 h-12 mx-auto text-muted-foreground mb-4 opacity-50" />
           <p className="text-muted-foreground text-sm mb-4">
             No hay bebidas configuradas para este servicio
           </p>
@@ -154,11 +155,11 @@ export default function BeveragesSection({
             variant="outline"
             size="sm"
             onClick={() => {
-              setIsEditing(true);
               generateDefaultBeverages();
             }}
           >
-            <Plus className="h-4 w-4 mr-2" /> Generar bebidas según PAX
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Generar bebidas según PAX
           </Button>
         </div>
       );
@@ -185,9 +186,8 @@ export default function BeveragesSection({
             </div>
 
             <div
-              className={`rounded-md border ${
-                isEditing ? "bg-background" : "bg-muted/10"
-              } overflow-x-auto`}
+              className={`rounded-md border ${isEditing ? "bg-background" : "bg-muted/10"
+                } overflow-x-auto`}
             >
               <Table className="min-w-[600px]">
                 <TableHeader className="bg-muted/40">
@@ -227,17 +227,16 @@ export default function BeveragesSection({
                                 <img
                                   src={item.photo_url}
                                   alt={item.item_name}
-                                  className={`w-10 h-10 rounded-lg object-cover border border-border/60 shadow-sm ${
-                                    isEditing
-                                      ? "cursor-pointer group-hover/img:opacity-75 transition-opacity"
-                                      : ""
-                                  }`}
+                                  className={`w-10 h-10 rounded-lg object-cover border border-border/60 shadow-sm ${isEditing
+                                    ? "cursor-pointer group-hover/img:opacity-75 transition-opacity"
+                                    : ""
+                                    }`}
                                   onClick={
                                     isEditing
                                       ? () =>
-                                          fileInputRefs.current[
-                                            globalIndex
-                                          ]?.click()
+                                        fileInputRefs.current[
+                                          globalIndex
+                                        ]?.click()
                                       : undefined
                                   }
                                 />
@@ -421,6 +420,7 @@ export default function BeveragesSection({
             variant="outline"
             size="sm"
             onClick={() => addItem(category)}
+            disabled={isDemo}
             className="w-full border-dashed hover:border-primary hover:text-primary transition-all"
           >
             <Plus className="h-4 w-4 mr-2" /> Añadir Nueva Bebida a{" "}
@@ -530,7 +530,7 @@ export default function BeveragesSection({
                   </Button>
                   <Button
                     size="sm"
-                    onClick={handleSave}
+                    onClick={() => handleSave()}
                     className="bg-primary hover:bg-primary/90"
                   >
                     <Save className="h-4 w-4 mr-2" /> Guardar Cambios
@@ -541,6 +541,8 @@ export default function BeveragesSection({
                   size="sm"
                   variant="outline"
                   onClick={() => setIsEditing(true)}
+                  disabled={isDemo}
+                  title={isDemo ? "No disponible en modo demo" : ""}
                   className="border-primary/20 hover:bg-primary/5"
                 >
                   <Edit2 className="h-4 w-4 mr-2" /> Editar Bebidas

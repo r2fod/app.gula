@@ -24,8 +24,8 @@ const CreateEvent = () => {
     canapes_per_person: "",
     notes: "",
   });
-  
-  const { user } = useAuth();
+
+  const { user, isDemo } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -33,20 +33,41 @@ const CreateEvent = () => {
     e.preventDefault();
     setLoading(true);
 
+    const eventPayload = {
+      user_id: user?.id!,
+      event_type: formData.event_type as "boda" | "produccion" | "evento_privado" | "delivery" | "comunion",
+      event_date: formData.event_date,
+      venue: formData.venue,
+      total_guests: parseInt(formData.total_guests) || 0,
+      adults: formData.adults ? parseInt(formData.adults) : 0,
+      children: formData.children ? parseInt(formData.children) : 0,
+      staff: formData.staff ? parseInt(formData.staff) : 0,
+      canapes_per_person: formData.canapes_per_person ? parseInt(formData.canapes_per_person) : 0,
+      notes: formData.notes || null,
+    };
+
+    // Si estamos en modo demo, guardamos en localStorage
+    if (isDemo) {
+      const mockId = crypto.randomUUID();
+      const newEvent = { ...eventPayload, id: mockId, user_id: 'demo-user', created_at: new Date().toISOString() };
+
+      const savedEventsRaw = localStorage.getItem("gula_demo_events");
+      const savedEvents = savedEventsRaw ? JSON.parse(savedEventsRaw) : [];
+      localStorage.setItem("gula_demo_events", JSON.stringify([...savedEvents, newEvent]));
+
+      toast({
+        title: "¡Evento creado (Modo Demo)!",
+        description: "El evento se ha guardado localmente en tu navegador.",
+      });
+
+      navigate(`/events/${mockId}`);
+      return;
+    }
+
+    // Proceso real con Supabase
     const { data: eventData, error: eventError } = await supabase
       .from("events")
-      .insert({
-        user_id: user?.id!,
-        event_type: formData.event_type as "boda" | "produccion" | "evento_privado" | "delivery" | "comunion",
-        event_date: formData.event_date,
-        venue: formData.venue,
-        total_guests: parseInt(formData.total_guests) || 0,
-        adults: formData.adults ? parseInt(formData.adults) : null,
-        children: formData.children ? parseInt(formData.children) : null,
-        staff: formData.staff ? parseInt(formData.staff) : null,
-        canapes_per_person: formData.canapes_per_person ? parseInt(formData.canapes_per_person) : null,
-        notes: formData.notes || null,
-      })
+      .insert(eventPayload)
       .select()
       .single();
 

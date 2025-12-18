@@ -3,8 +3,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Loader2 } from "lucide-react";
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user, loading } = useAuth();
+  const { user, loading, isDemo } = useAuth();
 
+  // Mientras se carga la sesión, mostramos un spinner de carga.
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -13,10 +14,12 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     );
   }
 
-  if (!user) {
+  // Si no hay usuario logueado Y no estamos en modo demo, redirigimos a la página de login.
+  if (!user && !isDemo) {
     return <Navigate to="/auth" replace />;
   }
 
+  // Si está autenticado o es demo, permitimos el acceso al contenido.
   return <>{children}</>;
 };
 

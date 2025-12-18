@@ -1,17 +1,25 @@
-import { useRef } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Package, Edit, Save, X, Plus, Trash2, Calculator, RefreshCw, ImagePlus } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { Package, Plus, Trash2, RefreshCw, GlassWater } from "lucide-react";
 import { useSupplies } from "../hooks/useSupplies";
 import type { Supply } from "../hooks/useSupplies";
+import { SectionHeader } from "@/components/SectionHeader";
+import { PhotoUploader } from "@/components/form/PhotoUploader";
 
 interface SuppliesSectionProps {
   eventId: string;
   totalGuests: number;
 }
 
+/**
+ * Sección que gestiona la cristalería, vajilla y menaje de un evento.
+ * Utiliza componentes compartidos para mantener la coherencia visual y de código.
+ */
 const SuppliesSection = ({ eventId, totalGuests }: SuppliesSectionProps) => {
+  const { isDemo } = useAuth();
+  // Extraemos toda la lógica del hook personalizado useSupplies
   const {
     supplies,
     formData,
@@ -27,22 +35,24 @@ const SuppliesSection = ({ eventId, totalGuests }: SuppliesSectionProps) => {
     handlePhotoUpload
   } = useSupplies(eventId, totalGuests);
 
-  const fileInputRefs = useRef<{ [key: number]: HTMLInputElement | null }>({});
-
+  // Añade una nueva fila vacía al formulario local
   const addSupply = () => {
     setFormData([...formData, { item_name: "", item_type: "", quantity: 0, unit_price: 0 }]);
   };
 
+  // Elimina una fila del formulario local
   const removeSupply = (index: number) => {
     setFormData(formData.filter((_, i) => i !== index));
   };
 
+  // Actualiza un campo específico de un item en el formulario local
   const updateSupply = (index: number, field: keyof Supply, value: string | number) => {
     const updated = [...formData];
     updated[index] = { ...updated[index], [field]: value };
     setFormData(updated);
   };
 
+  // Agrupamos los suministros por tipo (Cristalería, Vajilla, etc.) para una mejor visualización
   const groupedSupplies = (isEditing ? formData : supplies).reduce((acc, supply) => {
     const type = supply.item_type || "Otros";
     if (!acc[type]) acc[type] = [];
@@ -50,7 +60,7 @@ const SuppliesSection = ({ eventId, totalGuests }: SuppliesSectionProps) => {
     return acc;
   }, {} as Record<string, Supply[]>);
 
-  // Calcular total
+  // Cálculo del precio total estimado
   const totalPrice = supplies.reduce((sum, s) => sum + (s.quantity * (s.unit_price || 0)), 0);
 
   if (loading) {
@@ -59,93 +69,40 @@ const SuppliesSection = ({ eventId, totalGuests }: SuppliesSectionProps) => {
 
   return (
     <section>
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
-        <div>
-          <h2 className="text-2xl sm:text-3xl font-bold text-foreground">Cristalería y Menaje</h2>
-          <p className="text-sm text-muted-foreground mt-1">
-            {totalGuests} PAX • {barHours}h barra libre
-            {totalPrice > 0 && <span className="ml-2 text-primary font-medium">• Total: {totalPrice.toFixed(2)}€</span>}
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {!isEditing ? (
-            <>
-              {supplies.length > 0 && (
-                <Button size="sm" variant="outline" onClick={() => setIsEditing(true)} >
-                  <Edit className="w-4 h-4 mr-2" />
-                  Editar
-                </Button>
-              )}
-              {supplies.length === 0 && (
-                <Button size="sm" variant="outline" onClick={generateSupplies}>
-                  <Calculator className="w-4 h-4 mr-2" />
-                  Generar
-                </Button>
-              )}
-            </>
-          ) : (
-            <>
-              {formData.length > 0 && (
-                <Button size="sm" variant="outline" onClick={recalculateQuantities} title="Recalcular según PAX y horas sin guardar">
-                  <RefreshCw className="w-4 h-4 mr-2" />
-                  Recalcular
-                </Button>
-              )}
-              <Button size="sm" onClick={handleSave}>
-                <Save className="w-4 h-4 mr-2" />
-                Guardar
-              </Button>
-              <Button size="sm" variant="outline" onClick={() => { setIsEditing(false); setFormData(supplies); }}>
-                <X className="w-4 h-4 mr-2" />
-                Cancelar
-              </Button>
-            </>
-          )}
-        </div>
-      </div>
+      {/* Cabecera unificada: gestiona título, PAX, total y botones de acción */}
+      <SectionHeader
+        title="Cristalería y Menaje"
+        subtitle={`${totalGuests} PAX • ${barHours}h barra libre`}
+        isEditing={isEditing}
+        isDemo={isDemo}
+        onEdit={() => setIsEditing(true)}
+        onSave={handleSave}
+        onCancel={() => { setIsEditing(false); setFormData(supplies); }}
+        onRecalculate={recalculateQuantities}
+        showRecalculate={formData.length > 0}
+        totalPrice={totalPrice}
+      />
+
       <Card className="bg-section-supplies border-none shadow-soft">
         <div className="p-6">
-          {Object.entries(groupedSupplies).map(([type, items]) => (
+          {(Object.entries(groupedSupplies) as [string, Supply[]][]).map(([type, items]) => (
             <div key={type} className="mb-6 last:mb-0">
               <h3 className="text-lg font-semibold text-foreground mb-3 border-b border-border/30 pb-2">{type}</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {items.map((supply, index) => {
+                  // Necesitamos el índice global para las funciones de actualización
                   const globalIndex = (isEditing ? formData : supplies).findIndex(s => s === supply);
                   return (
                     <div key={supply.id || index} className="flex items-center justify-between p-4 rounded-lg bg-background/50">
                       {isEditing ? (
                         <div className="flex-1 space-y-2">
                           <div className="flex gap-2 items-center">
-                            {supply.photo_url ? (
-                              <img
-                                src={supply.photo_url}
-                                alt={supply.item_name}
-                                className="w-12 h-12 rounded object-cover cursor-pointer hover:opacity-80 transition-opacity"
-                                onClick={() => fileInputRefs.current[globalIndex]?.click()}
-                              />
-                            ) : (
-                              <Button
-                                size="icon"
-                                variant="outline"
-                                onClick={() => fileInputRefs.current[globalIndex]?.click()}
-                                disabled={uploadingIndex === globalIndex}
-                              >
-                                {uploadingIndex === globalIndex ? (
-                                  <RefreshCw className="w-4 h-4 animate-spin" />
-                                ) : (
-                                  <ImagePlus className="w-4 h-4" />
-                                )}
-                              </Button>
-                            )}
-                            <input
-                              type="file"
-                              accept="image/*"
-                              className="hidden"
-                              ref={el => fileInputRefs.current[globalIndex] = el}
-                              onChange={(e) => {
-                                const file = e.target.files?.[0];
-                                if (file) handlePhotoUpload(globalIndex, file);
-                              }}
+                            {/* Componente unificado para subida de fotos */}
+                            <PhotoUploader
+                              photoUrl={supply.photo_url}
+                              isUploading={uploadingIndex === globalIndex}
+                              onUpload={(file) => handlePhotoUpload(globalIndex, file)}
+                              size="md"
                             />
                             <Input
                               placeholder="Nombre del ítem"
@@ -216,18 +173,23 @@ const SuppliesSection = ({ eventId, totalGuests }: SuppliesSectionProps) => {
               </div>
             </div>
           ))}
+
           {isEditing && (
             <Button onClick={addSupply} variant="outline" className="mt-4">
               <Plus className="w-4 h-4 mr-2" />
               Agregar Suministro
             </Button>
           )}
+
           {supplies.length === 0 && !isEditing && (
-            <div className="text-center py-8 text-muted-foreground">
-              <Package className="w-12 h-12 mx-auto mb-4 opacity-50" />
-              <p>No hay cristalería configurada</p>
-              <Button variant="link" onClick={generateSupplies} className="text-primary mt-2">
-                Generar automáticamente
+            <div className="text-center py-10 bg-muted/20 rounded-lg border border-dashed border-muted-foreground/25">
+              <GlassWater className="w-12 h-12 mx-auto text-muted-foreground mb-4 opacity-50" />
+              <p className="text-muted-foreground text-sm mb-4">
+                No hay cristalería configurada
+              </p>
+              <Button variant="outline" size="sm" onClick={generateSupplies}>
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Generar cristalería y menaje según PAX
               </Button>
             </div>
           )}

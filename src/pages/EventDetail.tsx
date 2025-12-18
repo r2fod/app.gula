@@ -3,7 +3,9 @@ import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 import { ArrowLeft, Loader2 } from "lucide-react";
+// Importación de componentes de la interfaz de usuario
 import EventHeader from "@/features/events/components/EventHeader";
 import Timeline from "@/features/events/components/Timeline";
 import EventInfo from "@/features/events/components/EventInfo";
@@ -37,13 +39,14 @@ const EventDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { isDemo } = useAuth(); // Obtenemos el estado de demo desde el contexto
 
   useEffect(() => {
     fetchEvent();
 
-    if (!id) return;
+    if (!id || isDemo) return; // Si es demo, no nos suscribimos a Supabase
 
-    // Suscripción en tiempo real para el evento actual
+    // Suscripción en tiempo real solo para eventos reales de Supabase
     const channel = supabase
       .channel(`event-${id}`)
       .on(
@@ -61,15 +64,41 @@ const EventDetail = () => {
       )
       .subscribe();
 
-    // Cleanup
+    // Cleanup de la suscripción
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [id]);
+  }, [id, isDemo]);
 
+  // Función para obtener los detalles del evento
   const fetchEvent = async () => {
     if (!id) return;
 
+    // Si estamos en modo demo, buscamos en el localStorage
+    if (isDemo) {
+      const savedEventsRaw = localStorage.getItem("gula_demo_events");
+      if (savedEventsRaw) {
+        const savedEvents = JSON.parse(savedEventsRaw);
+        const demoEvent = savedEvents.find((e: any) => e.id === id);
+        if (demoEvent) {
+          setEvent(demoEvent);
+          setLoading(false);
+          return;
+        }
+      }
+
+      // Si no se encuentra el evento en demo, volvemos a la lista
+      toast({
+        title: "Evento no encontrado",
+        description: "No se pudo encontrar el evento de demostración.",
+        variant: "destructive",
+      });
+      navigate("/events");
+      setLoading(false);
+      return;
+    }
+
+    // Petición normal a Supabase para usuarios reales
     const { data, error } = await supabase
       .from("events")
       .select("*")
@@ -114,9 +143,9 @@ const EventDetail = () => {
 
       <EventHeader event={event} onUpdate={fetchEvent} />
 
-      <main className="container mx-auto px-4 py-8 space-y-8">
+      <main className="container mx-auto px-4 py-8 space-y-6 sm:space-y-8">
         {/* Sección 1: Timing y Resumen */}
-        <section className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <section className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
           <Timeline eventId={event.id} />
           <CornersSection eventId={event.id} />
         </section>

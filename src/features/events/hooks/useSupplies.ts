@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "@/contexts/AuthContext";
 
 export interface Supply {
   id?: string;
@@ -40,6 +41,7 @@ export const SUPPLY_RATIOS: { item_name: string; item_type: string; ratio_per_pa
 ];
 
 export const useSupplies = (eventId: string, totalGuests: number) => {
+  const { isDemo, user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [formData, setFormData] = useState<Supply[]>([]);
@@ -50,8 +52,15 @@ export const useSupplies = (eventId: string, totalGuests: number) => {
   // --- QUERIES ---
 
   const { data: supplies = [], isLoading: loadingSupplies } = useQuery({
-    queryKey: ['supplies', eventId],
+    queryKey: ['supplies', eventId, isDemo],
     queryFn: async () => {
+      if (isDemo) {
+        const saved = localStorage.getItem(`gula_demo_supplies_${eventId}`);
+        return saved ? JSON.parse(saved) : [];
+      }
+
+      if (!user) return [];
+
       const { data, error } = await supabase
         .from("supplies")
         .select("*")
@@ -63,8 +72,20 @@ export const useSupplies = (eventId: string, totalGuests: number) => {
   });
 
   const { data: timings } = useQuery({
-    queryKey: ['timings', eventId],
+    queryKey: ['timings', eventId, isDemo],
     queryFn: async () => {
+      if (isDemo) {
+        const savedEvents = localStorage.getItem("gula_demo_events");
+        if (savedEvents) {
+          const events = JSON.parse(savedEvents);
+          const event = events.find((e: any) => e.id === eventId);
+          if (event) return { bar_hours: event.bar_hours || 4 };
+        }
+        return { bar_hours: 4 };
+      }
+
+      if (!user) return null;
+
       const { data, error } = await supabase
         .from("event_timings")
         .select("bar_hours")
@@ -91,18 +112,20 @@ export const useSupplies = (eventId: string, totalGuests: number) => {
 
   // Real-time subscription
   useEffect(() => {
+    if (isDemo || !user) return;
+
     const channel = supabase
       .channel(`supplies-changes-${eventId}`)
       .on('postgres_changes',
         { event: '*', schema: 'public', table: 'supplies', filter: `event_id=eq.${eventId}` },
-        () => queryClient.invalidateQueries({ queryKey: ['supplies', eventId] })
+        () => queryClient.invalidateQueries({ queryKey: ['supplies', eventId, isDemo] })
       )
       .subscribe();
 
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [eventId, queryClient]);
+  }, [eventId, queryClient, isDemo, user]);
 
   // --- ACTIONS ---
 
@@ -148,7 +171,6 @@ export const useSupplies = (eventId: string, totalGuests: number) => {
     setFormData(generatedSupplies);
 
     // Si no estamos editando, guardamos directamente (comportamiento "Generar de cero")
-    // Si estamos editando, solo actualizamos el formulario
     if (!isEditing) {
       await saveToDb(generatedSupplies);
     }
@@ -156,6 +178,16 @@ export const useSupplies = (eventId: string, totalGuests: number) => {
 
   const saveToDb = async (dataToSave: Supply[]) => {
     try {
+      if (isDemo) {
+        localStorage.setItem(`gula_demo_supplies_${eventId}`, JSON.stringify(dataToSave));
+        toast({ title: "Guardado (Modo Demo)", description: "Suministros actualizados localmente" });
+        setIsEditing(false);
+        queryClient.invalidateQueries({ queryKey: ['supplies', eventId, isDemo] });
+        return;
+      }
+
+      if (!user) throw new Error("Debes iniciar sesión para guardar permanentemente.");
+
       await supabase.from("supplies").delete().eq("event_id", eventId);
 
       if (dataToSave.length > 0) {
@@ -175,16 +207,25 @@ export const useSupplies = (eventId: string, totalGuests: number) => {
 
       toast({ title: "Guardado", description: "Suministros actualizados correctamente" });
       setIsEditing(false);
-      queryClient.invalidateQueries({ queryKey: ['supplies', eventId] });
+      queryClient.invalidateQueries({ queryKey: ['supplies', eventId, isDemo] });
     } catch (error) {
       console.error("Error saving supplies:", error);
-      toast({ title: "Error", description: "No se pudieron guardar los cambios", variant: "destructive" });
+      toast({ title: "Error", description: error instanceof Error ? error.message : "No se pudieron guardar los cambios", variant: "destructive" });
     }
   };
 
   const handleSave = () => saveToDb(formData);
 
   const handlePhotoUpload = async (index: number, file: File) => {
+    if (isDemo) {
+      toast({ title: "Simulación de subida", description: "Imagen previsualizada localmente." });
+      const localUrl = URL.createObjectURL(file);
+      const updated = [...formData];
+      updated[index] = { ...updated[index], photo_url: localUrl };
+      setFormData(updated);
+      return;
+    }
+
     setUploadingIndex(index);
     const fileExt = file.name.split('.').pop();
     const fileName = `supply-${eventId}-${Date.now()}.${fileExt}`;

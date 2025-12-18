@@ -35,7 +35,7 @@ const Events = () => {
   const { events, loading: eventsLoading } = useEvents();
   const [profileLoading, setProfileLoading] = useState(true);
   const [profile, setProfile] = useState<{ company_name?: string; avatar_url?: string } | null>(null);
-  const { user } = useAuth();
+  const { user, isDemo, setDemoMode } = useAuth();
   const navigate = useNavigate();
   // const { toast } = useToast(); // Ya no se necesita aquí si el hook maneja sus errores, pero profile fetching aún lo podría usar
 
@@ -52,8 +52,11 @@ const Events = () => {
       return () => {
         supabase.removeChannel(channelProfile);
       };
+    } else if (isDemo) {
+      setProfile({ company_name: "Gula Catering (Demo)" });
+      setProfileLoading(false);
     }
-  }, [user]);
+  }, [user, isDemo]);
 
   // Combinar estados de carga
   const isLoading = profileLoading || eventsLoading;
@@ -70,8 +73,13 @@ const Events = () => {
   };
 
   const handleSignOut = async () => {
-    await signOut();
-    navigate("/");
+    if (isDemo) {
+      setDemoMode(false);
+      navigate("/");
+    } else {
+      await signOut();
+      navigate("/");
+    }
   };
 
   if (isLoading) {
@@ -84,42 +92,49 @@ const Events = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b border-border bg-card">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
+      <header className="border-b border-border bg-card sticky top-0 z-40">
+        <div className="container mx-auto px-4 py-3 md:py-4">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-3 w-full sm:w-auto">
               {profile?.avatar_url ? (
                 <img
                   src={profile.avatar_url}
                   alt={profile.company_name || "Logo"}
-                  className="w-10 h-10 object-contain rounded-md bg-white border border-border"
+                  className="w-10 h-10 object-contain rounded-md bg-white border border-border shrink-0"
                 />
               ) : (
-                <div className="w-10 h-10 rounded-md bg-primary/10 flex items-center justify-center text-primary">
+                <div className="w-10 h-10 rounded-md bg-primary/10 flex items-center justify-center text-primary shrink-0">
                   <Building2 className="w-6 h-6" />
                 </div>
               )}
-              <h1 className="text-2xl font-bold">
-                {profile?.company_name || "Mis Eventos"}
-              </h1>
+              <div className="flex flex-col">
+                <h1 className="text-xl md:text-2xl font-bold truncate max-w-[200px] sm:max-w-none">
+                  {profile?.company_name || "Mis Eventos"}
+                </h1>
+                {isDemo && (
+                  <Badge variant="secondary" className="w-fit text-[10px] py-0 px-1.5 h-auto bg-amber-100 text-amber-700 border-amber-200">
+                    Modo Demo
+                  </Badge>
+                )}
+              </div>
             </div>
 
-            <div className="flex items-center gap-4">
+            <div className="flex items-center justify-between sm:justify-end gap-2 md:gap-4 w-full sm:w-auto">
               <ProfileSettings />
-              <Button variant="outline" asChild className="hidden md:flex">
+              <Button variant="outline" size="sm" asChild className="hidden sm:flex">
                 <Link to="/menus">
                   <UtensilsCrossed className="w-4 h-4 mr-2" />
                   Menús
                 </Link>
               </Button>
-              <Button asChild>
+              <Button size="sm" asChild className="flex-1 sm:flex-none">
                 <Link to="/events/create">
                   <Plus className="w-4 h-4 mr-2" />
                   <span className="hidden md:inline">Nuevo Evento</span>
                   <span className="md:hidden">Nuevo</span>
                 </Link>
               </Button>
-              <Button variant="ghost" size="icon" onClick={handleSignOut} title="Cerrar sesión">
+              <Button variant="ghost" size="icon" className="h-9 w-9" onClick={handleSignOut} title="Cerrar sesión">
                 <LogOut className="w-4 h-4" />
               </Button>
             </div>
@@ -158,9 +173,12 @@ const Events = () => {
                     <div className="flex items-center gap-2">
                       <Calendar className="w-4 h-4" />
                       <span className="capitalize">
-                        {format(new Date(event.event_date), "EEEE, d 'de' MMMM", {
-                          locale: es,
-                        })}
+                        {(() => {
+                          const date = new Date(event.event_date);
+                          return isNaN(date.getTime())
+                            ? "Fecha no definida"
+                            : format(date, "EEEE, d 'de' MMMM", { locale: es });
+                        })()}
                       </span>
                     </div>
                     <div className="flex items-center gap-2">

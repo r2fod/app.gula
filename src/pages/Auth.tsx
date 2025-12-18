@@ -179,7 +179,7 @@ const Auth = () => {
               <KeyRound className="w-6 h-6 text-primary-foreground" />
             </div>
           </div>
-          
+
           <h1 className="text-2xl font-bold text-center mb-2">Nueva Contraseña</h1>
           <p className="text-center text-muted-foreground mb-8">
             Ingresa tu nueva contraseña
@@ -220,7 +220,7 @@ const Auth = () => {
               <KeyRound className="w-6 h-6 text-primary-foreground" />
             </div>
           </div>
-          
+
           <h1 className="text-2xl font-bold text-center mb-2">Recuperar Contraseña</h1>
           <p className="text-center text-muted-foreground mb-8">
             Te enviaremos un enlace para restablecer tu contraseña
@@ -260,21 +260,21 @@ const Auth = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-section-info to-section-menu p-4">
-      <Card className="w-full max-w-md p-8 shadow-medium">
-        <div className="flex items-center justify-center mb-8">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-section-info to-section-menu p-2 md:p-4">
+      <Card className="w-full max-w-md p-4 md:p-8 shadow-medium">
+        <div className="flex items-center justify-center mb-6 md:mb-8">
           <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center">
             <Calendar className="w-6 h-6 text-primary-foreground" />
           </div>
         </div>
-        
-        <h1 className="text-3xl font-bold text-center mb-2">Gestión de Eventos</h1>
-        <p className="text-center text-muted-foreground mb-8">
+
+        <h1 className="text-2xl md:text-3xl font-bold text-center mb-2">Gestión de Eventos</h1>
+        <p className="text-center text-sm md:text-base text-muted-foreground mb-6 md:mb-8">
           Organiza y gestiona tus eventos profesionales
         </p>
 
         <Tabs defaultValue="signin" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-8">
+          <TabsList className="grid w-full grid-cols-2 mb-6 md:mb-8">
             <TabsTrigger value="signin">Iniciar Sesión</TabsTrigger>
             <TabsTrigger value="signup">Registrarse</TabsTrigger>
           </TabsList>
@@ -376,7 +376,7 @@ const Auth = () => {
                   required
                   disabled={loading}
                 />
-                <p className="text-xs text-muted-foreground">
+                <p className="text-[10px] md:text-xs text-muted-foreground">
                   Solicita el código a tu administrador
                 </p>
               </div>

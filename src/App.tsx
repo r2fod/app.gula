@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { AIProvider } from "@/contexts/AIContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import ErrorBoundary from "@/components/common/ErrorBoundary";
 import Index from "./pages/Index";
@@ -14,65 +15,80 @@ import CreateEvent from "./pages/CreateEvent";
 import Menus from "./pages/Menus";
 import NotFound from "./pages/NotFound";
 
+import { PageDecorations } from "@/components/PageDecorations";
+
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <ErrorBoundary>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/auth" element={<Auth />} />
-              <Route
-                path="/events"
-                element={
-                  <ProtectedRoute>
-                    <ErrorBoundary>
-                      <Events />
-                    </ErrorBoundary>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/events/create"
-                element={
-                  <ProtectedRoute>
-                    <ErrorBoundary>
-                      <CreateEvent />
-                    </ErrorBoundary>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/events/:id"
-                element={
-                  <ProtectedRoute>
-                    <ErrorBoundary>
-                      <EventDetail />
-                    </ErrorBoundary>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/menus"
-                element={
-                  <ProtectedRoute>
-                    <ErrorBoundary>
-                      <Menus />
-                    </ErrorBoundary>
-                  </ProtectedRoute>
-                }
-              />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </ErrorBoundary>
-        </BrowserRouter>
-      </TooltipProvider>
+      <AIProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <ErrorBoundary>
+              <PageDecorations />
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/auth" element={<Auth />} />
+                <Route
+                  path="/events"
+                  element={
+                    <ProtectedRoute>
+                      <ErrorBoundary>
+                        <Events />
+                      </ErrorBoundary>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/events/create"
+                  element={
+                    <ProtectedRoute>
+                      <ErrorBoundary>
+                        <CreateEvent />
+                      </ErrorBoundary>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/events/:id"
+                  element={
+                    <ProtectedRoute>
+                      <ErrorBoundary>
+                        <EventDetail />
+                      </ErrorBoundary>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/events/:id/edit"
+                  element={
+                    <ProtectedRoute>
+                      <ErrorBoundary>
+                        <CreateEvent />
+                      </ErrorBoundary>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/menus"
+                  element={
+                    <ProtectedRoute>
+                      <ErrorBoundary>
+                        <Menus />
+                      </ErrorBoundary>
+                    </ProtectedRoute>
+                  }
+                />
+                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </ErrorBoundary>
+          </BrowserRouter>
+        </TooltipProvider>
+      </AIProvider>
     </AuthProvider>
   </QueryClientProvider>
 );
