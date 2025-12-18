@@ -107,11 +107,13 @@ export default function RentalsSection({ eventId }: RentalsSectionProps) {
 
   return (
     <Card className="bg-section-special">
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-lg flex items-center gap-2">
-          <Package className="h-5 w-5 text-primary" />
-          Alquileres y Seguimiento
-          <div className="flex gap-2 ml-4">
+      <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between pb-2 gap-3">
+        <CardTitle className="text-lg flex flex-col sm:flex-row sm:items-center gap-2">
+          <div className="flex items-center gap-2">
+            <Package className="h-5 w-5 text-primary" />
+            Alquileres y Seguimiento
+          </div>
+          <div className="flex gap-2 sm:ml-4 flex-wrap">
             {STATUS_OPTIONS.map(status => (
               <span key={status.value} className={`text-xs ${status.color}`}>
                 {status.label}: {countByStatus(status.value)}
@@ -144,50 +146,59 @@ export default function RentalsSection({ eventId }: RentalsSectionProps) {
               const StatusIcon = statusConfig.icon;
 
               return isEditing ? (
-                <div key={index} className="grid grid-cols-12 gap-2 items-center">
-                  <Input
-                    className="col-span-5"
-                    placeholder="Ítem (ej: Minutas, Flores...)"
-                    value={item.item_name}
-                    onChange={(e) => updateRental(index, "item_name", e.target.value)}
-                  />
-                  <Select
-                    value={item.status}
-                    onValueChange={(value) => updateRental(index, "status", value)}
-                  >
-                    <SelectTrigger className="col-span-3">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {STATUS_OPTIONS.map(opt => (
-                        <SelectItem key={opt.value} value={opt.value}>
-                          {opt.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Input
-                    className="col-span-3"
-                    placeholder="Notas"
-                    value={item.notes || ""}
-                    onChange={(e) => updateRental(index, "notes", e.target.value)}
-                  />
+                <div key={index} className="space-y-2 md:space-y-0 md:grid md:grid-cols-12 gap-2 items-center p-3 md:p-0 bg-muted/30 md:bg-transparent rounded-lg md:rounded-none">
+                  <div className="md:col-span-5">
+                    <label className="text-xs text-muted-foreground md:hidden mb-1 block">Ítem</label>
+                    <Input
+                      placeholder="Ítem (ej: Minutas, Flores...)"
+                      value={item.item_name}
+                      onChange={(e) => updateRental(index, "item_name", e.target.value)}
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 md:contents">
+                    <div className="md:col-span-3">
+                      <label className="text-xs text-muted-foreground md:hidden mb-1 block">Estado</label>
+                      <Select
+                        value={item.status}
+                        onValueChange={(value) => updateRental(index, "status", value)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {STATUS_OPTIONS.map(opt => (
+                            <SelectItem key={opt.value} value={opt.value}>
+                              {opt.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="md:col-span-3">
+                      <label className="text-xs text-muted-foreground md:hidden mb-1 block">Notas</label>
+                      <Input
+                        placeholder="Notas"
+                        value={item.notes || ""}
+                        onChange={(e) => updateRental(index, "notes", e.target.value)}
+                      />
+                    </div>
+                  </div>
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="col-span-1"
+                    className="md:col-span-1 self-end md:self-auto"
                     onClick={() => removeRental(index)}
                   >
                     <Trash2 className="h-4 w-4 text-destructive" />
                   </Button>
                 </div>
               ) : (
-                <div key={index} className="flex justify-between items-center py-2 border-b border-border last:border-0">
+                <div key={index} className="flex flex-col sm:flex-row sm:justify-between sm:items-center py-2 border-b border-border last:border-0 gap-2">
                   <div className="flex items-center gap-2">
                     <StatusIcon className={`h-4 w-4 ${statusConfig.color}`} />
                     <span className="font-medium">{item.item_name}</span>
                   </div>
-                  <div className="flex items-center gap-3">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
                     {item.notes && (
                       <span className="text-sm text-muted-foreground">{item.notes}</span>
                     )}
@@ -196,7 +207,7 @@ export default function RentalsSection({ eventId }: RentalsSectionProps) {
                         value={item.status}
                         onValueChange={(value) => quickUpdateStatus(item.id!, value)}
                       >
-                        <SelectTrigger className="w-32 h-8">
+                        <SelectTrigger className="w-full sm:w-32 h-8">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>

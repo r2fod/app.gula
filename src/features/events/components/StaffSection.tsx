@@ -137,7 +137,7 @@ export default function StaffSection({ eventId }: StaffSectionProps) {
         ) : (
           <div className="space-y-2">
             {isEditing && (
-              <div className="grid grid-cols-12 gap-2 text-xs font-medium text-muted-foreground mb-2 px-1">
+              <div className="hidden md:grid grid-cols-12 gap-2 text-xs font-medium text-muted-foreground mb-2 px-1">
                 <span className="col-span-3">Rol</span>
                 <span className="col-span-2">Cantidad</span>
                 <span className="col-span-2">Entrada</span>
@@ -149,62 +149,76 @@ export default function StaffSection({ eventId }: StaffSectionProps) {
             
             {formData.map((item, index) => (
               isEditing ? (
-                <div key={index} className="grid grid-cols-12 gap-2 items-center">
-                  <Input
-                    className="col-span-3"
-                    placeholder="Rol"
-                    list="roles-list"
-                    value={item.role}
-                    onChange={(e) => updateStaff(index, "role", e.target.value)}
-                  />
-                  <Input
-                    className="col-span-2"
-                    type="number"
-                    min="0"
-                    value={item.staff_count || ""}
-                    onChange={(e) => updateStaff(index, "staff_count", parseInt(e.target.value) || 0)}
-                  />
-                  <Input
-                    className="col-span-2"
-                    type="time"
-                    value={item.arrival_time || ""}
-                    onChange={(e) => updateStaff(index, "arrival_time", e.target.value)}
-                  />
-                  <Input
-                    className="col-span-2"
-                    type="time"
-                    value={item.departure_time || ""}
-                    onChange={(e) => updateStaff(index, "departure_time", e.target.value)}
-                  />
-                  <Input
-                    className="col-span-2"
-                    placeholder="Notas"
-                    value={item.notes || ""}
-                    onChange={(e) => updateStaff(index, "notes", e.target.value)}
-                  />
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="col-span-1"
-                    onClick={() => removeStaff(index)}
-                  >
-                    <Trash2 className="h-4 w-4 text-destructive" />
-                  </Button>
+                <div key={index} className="space-y-2 md:space-y-0 md:grid md:grid-cols-12 gap-2 items-center p-3 md:p-0 bg-muted/30 md:bg-transparent rounded-lg md:rounded-none">
+                  <div className="md:col-span-3">
+                    <label className="text-xs text-muted-foreground md:hidden mb-1 block">Rol</label>
+                    <Input
+                      placeholder="Rol"
+                      list="roles-list"
+                      value={item.role}
+                      onChange={(e) => updateStaff(index, "role", e.target.value)}
+                    />
+                  </div>
+                  <div className="grid grid-cols-3 gap-2 md:contents">
+                    <div className="md:col-span-2">
+                      <label className="text-xs text-muted-foreground md:hidden mb-1 block">Cant.</label>
+                      <Input
+                        type="number"
+                        min="0"
+                        value={item.staff_count || ""}
+                        onChange={(e) => updateStaff(index, "staff_count", parseInt(e.target.value) || 0)}
+                      />
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className="text-xs text-muted-foreground md:hidden mb-1 block">Entrada</label>
+                      <Input
+                        type="time"
+                        value={item.arrival_time || ""}
+                        onChange={(e) => updateStaff(index, "arrival_time", e.target.value)}
+                      />
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className="text-xs text-muted-foreground md:hidden mb-1 block">Salida</label>
+                      <Input
+                        type="time"
+                        value={item.departure_time || ""}
+                        onChange={(e) => updateStaff(index, "departure_time", e.target.value)}
+                      />
+                    </div>
+                  </div>
+                  <div className="flex gap-2 md:contents">
+                    <div className="flex-1 md:col-span-2">
+                      <label className="text-xs text-muted-foreground md:hidden mb-1 block">Notas</label>
+                      <Input
+                        placeholder="Notas"
+                        value={item.notes || ""}
+                        onChange={(e) => updateStaff(index, "notes", e.target.value)}
+                      />
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="md:col-span-1 self-end md:self-auto"
+                      onClick={() => removeStaff(index)}
+                    >
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
+                  </div>
                 </div>
               ) : (
-                <div key={index} className="flex justify-between items-center py-2 border-b border-border last:border-0">
+                <div key={index} className="flex flex-col sm:flex-row sm:justify-between sm:items-center py-2 border-b border-border last:border-0 gap-1">
                   <div className="flex items-center gap-2">
                     <span className="font-medium">{item.role}</span>
                     <span className="text-primary font-semibold">x{item.staff_count}</span>
                   </div>
-                  <div className="flex gap-4 text-sm text-muted-foreground">
+                  <div className="flex flex-wrap gap-2 sm:gap-4 text-sm text-muted-foreground">
                     {item.arrival_time && (
-                      <span>Entrada: {item.arrival_time}</span>
+                      <span className="text-xs sm:text-sm">Entrada: {item.arrival_time}</span>
                     )}
                     {item.departure_time && (
-                      <span>Salida: {item.departure_time}</span>
+                      <span className="text-xs sm:text-sm">Salida: {item.departure_time}</span>
                     )}
-                    {item.notes && <span>{item.notes}</span>}
+                    {item.notes && <span className="text-xs sm:text-sm">{item.notes}</span>}
                   </div>
                 </div>
               )

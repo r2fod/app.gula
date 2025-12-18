@@ -187,9 +187,9 @@ export default function BeveragesSection({
             <div
               className={`rounded-md border ${
                 isEditing ? "bg-background" : "bg-muted/10"
-              } overflow-hidden`}
+              } overflow-x-auto`}
             >
-              <Table>
+              <Table className="min-w-[600px]">
                 <TableHeader className="bg-muted/40">
                   <TableRow>
                     <TableHead className="w-[60px]"></TableHead>

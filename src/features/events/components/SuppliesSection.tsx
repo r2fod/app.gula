@@ -59,15 +59,15 @@ const SuppliesSection = ({ eventId, totalGuests }: SuppliesSectionProps) => {
 
   return (
     <section>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
         <div>
-          <h2 className="text-3xl font-bold text-foreground">Cristalería y Menaje</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold text-foreground">Cristalería y Menaje</h2>
           <p className="text-sm text-muted-foreground mt-1">
             {totalGuests} PAX • {barHours}h barra libre
             {totalPrice > 0 && <span className="ml-2 text-primary font-medium">• Total: {totalPrice.toFixed(2)}€</span>}
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           {!isEditing ? (
             <>
               {supplies.length > 0 && (
@@ -108,7 +108,7 @@ const SuppliesSection = ({ eventId, totalGuests }: SuppliesSectionProps) => {
           {Object.entries(groupedSupplies).map(([type, items]) => (
             <div key={type} className="mb-6 last:mb-0">
               <h3 className="text-lg font-semibold text-foreground mb-3 border-b border-border/30 pb-2">{type}</h3>
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {items.map((supply, index) => {
                   const globalIndex = (isEditing ? formData : supplies).findIndex(s => s === supply);
                   return (

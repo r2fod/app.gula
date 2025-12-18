@@ -118,8 +118,8 @@ const TableDistribution = ({ eventId }: TableDistributionProps) => {
 
   return (
     <section>
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-3xl font-bold text-foreground">Distribución de Mesas</h2>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
+        <h2 className="text-2xl sm:text-3xl font-bold text-foreground">Distribución de Mesas</h2>
         {!isEditing ? (
           <Button size="sm" onClick={() => setIsEditing(true)}>
             <Edit className="w-4 h-4 mr-2" />
@@ -139,16 +139,16 @@ const TableDistribution = ({ eventId }: TableDistributionProps) => {
         )}
       </div>
       <Card className="bg-section-staff border-none shadow-soft">
-        <div className="p-6">
-          <div className="mb-6 p-4 bg-primary/10 rounded-lg flex items-center justify-between">
+        <div className="p-4 sm:p-6">
+          <div className="mb-6 p-3 sm:p-4 bg-primary/10 rounded-lg flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div className="flex items-center gap-3">
-              <Users className="w-6 h-6 text-primary" />
-              <span className="font-semibold text-foreground">Total de Invitados en Mesas</span>
+              <Users className="w-5 sm:w-6 h-5 sm:h-6 text-primary" />
+              <span className="font-semibold text-foreground text-sm sm:text-base">Total de Invitados en Mesas</span>
             </div>
-            <span className="text-2xl font-bold text-primary">{totalPax}</span>
+            <span className="text-xl sm:text-2xl font-bold text-primary">{totalPax}</span>
           </div>
           
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {(isEditing ? formData : tables).map((table, index) => (
               <div key={table.id || index} className="p-4 rounded-lg bg-background/50 border-l-4 border-primary/50">
                 {isEditing ? (

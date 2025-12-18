@@ -106,29 +106,37 @@ export default function RoomEquipmentSection({ eventId }: RoomEquipmentSectionPr
           const globalIndex = formData.findIndex(e => e === item);
           
           return isEditing ? (
-            <div key={idx} className="grid grid-cols-12 gap-2 items-center">
-              <Input
-                className="col-span-5"
-                placeholder="Nombre"
-                value={item.item_name}
-                onChange={(e) => updateItem(globalIndex, "item_name", e.target.value)}
-              />
-              <Input
-                className="col-span-3"
-                placeholder="Cantidad"
-                value={item.quantity}
-                onChange={(e) => updateItem(globalIndex, "quantity", e.target.value)}
-              />
-              <Input
-                className="col-span-3"
-                placeholder="Notas"
-                value={item.notes || ""}
-                onChange={(e) => updateItem(globalIndex, "notes", e.target.value)}
-              />
+            <div key={idx} className="space-y-2 md:space-y-0 md:grid md:grid-cols-12 gap-2 items-center p-3 md:p-0 bg-muted/30 md:bg-transparent rounded-lg md:rounded-none">
+              <div className="md:col-span-5">
+                <label className="text-xs text-muted-foreground md:hidden mb-1 block">Nombre</label>
+                <Input
+                  placeholder="Nombre"
+                  value={item.item_name}
+                  onChange={(e) => updateItem(globalIndex, "item_name", e.target.value)}
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-2 md:contents">
+                <div className="md:col-span-3">
+                  <label className="text-xs text-muted-foreground md:hidden mb-1 block">Cantidad</label>
+                  <Input
+                    placeholder="Cantidad"
+                    value={item.quantity}
+                    onChange={(e) => updateItem(globalIndex, "quantity", e.target.value)}
+                  />
+                </div>
+                <div className="md:col-span-3">
+                  <label className="text-xs text-muted-foreground md:hidden mb-1 block">Notas</label>
+                  <Input
+                    placeholder="Notas"
+                    value={item.notes || ""}
+                    onChange={(e) => updateItem(globalIndex, "notes", e.target.value)}
+                  />
+                </div>
+              </div>
               <Button
                 variant="ghost"
                 size="icon"
-                className="col-span-1"
+                className="md:col-span-1 self-end md:self-auto"
                 onClick={() => removeItem(globalIndex)}
               >
                 <Trash2 className="h-4 w-4 text-destructive" />
