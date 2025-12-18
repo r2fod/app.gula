@@ -164,8 +164,8 @@ const Timeline = ({ eventId }: TimelineProps) => {
 
   return (
     <section>
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-3xl font-bold text-foreground">Horarios</h2>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
+        <h2 className="text-2xl sm:text-3xl font-bold text-foreground">Horarios</h2>
         {!isEditing ? (
           <Button size="sm" onClick={() => setIsEditing(true)}>
             <Edit className="w-4 h-4 mr-2" />
@@ -185,31 +185,31 @@ const Timeline = ({ eventId }: TimelineProps) => {
         )}
       </div>
       <Card className="bg-section-info border-none shadow-soft">
-        <div className="p-6">
-          <div className="space-y-4">
+        <div className="p-4 sm:p-6">
+          <div className="space-y-3 sm:space-y-4">
             {events.map((event) => (
-              <div key={event.key} className="flex items-center gap-4 p-4 rounded-lg bg-background/50">
+              <div key={event.key} className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 rounded-lg bg-background/50">
                 {isEditing ? (
                   <Input
                     type="time"
                     value={(formData[event.key as keyof Omit<EventTiming, 'bar_hours'>] as string) || ""}
                     onChange={(e) => setFormData({ ...formData, [event.key]: e.target.value })}
-                    className="w-32"
+                    className="w-24 sm:w-32"
                   />
                 ) : (
-                  <div className="flex items-center justify-center w-16 h-16 rounded-full bg-primary text-primary-foreground font-medium text-lg">
+                  <div className="flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-primary text-primary-foreground font-medium text-sm sm:text-lg shrink-0">
                     {formatTime((timings?.[event.key as keyof Omit<EventTiming, 'bar_hours'>] as string) || null)}
                   </div>
                 )}
-                <div className="flex-1">
-                  <div className="font-semibold text-lg text-foreground">{event.label}</div>
+                <div className="flex-1 min-w-0">
+                  <div className="font-semibold text-sm sm:text-lg text-foreground truncate">{event.label}</div>
                 </div>
-                <Clock className="w-5 h-5 text-muted-foreground" />
+                <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground shrink-0" />
               </div>
             ))}
 
             {/* Campo para horas de barra libre */}
-            <div className="flex items-center gap-4 p-4 rounded-lg bg-background/50 border-2 border-primary/20">
+            <div className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 rounded-lg bg-background/50 border-2 border-primary/20">
               {isEditing ? (
                 <Input
                   type="number"
@@ -217,19 +217,19 @@ const Timeline = ({ eventId }: TimelineProps) => {
                   max="24"
                   value={formData.bar_hours || ""}
                   onChange={(e) => setFormData({ ...formData, bar_hours: parseInt(e.target.value) || null })}
-                  className="w-32"
+                  className="w-24 sm:w-32"
                   placeholder="Horas"
                 />
               ) : (
-                <div className="flex items-center justify-center w-16 h-16 rounded-full bg-primary text-primary-foreground font-medium text-xl">
+                <div className="flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-primary text-primary-foreground font-medium text-base sm:text-xl shrink-0">
                   {timings?.bar_hours || "--"}
                 </div>
               )}
-              <div className="flex-1">
-                <div className="font-semibold text-lg text-foreground">Horas de Barra Libre</div>
-                <div className="text-sm text-muted-foreground">Duración total de la barra (para cálculo de bebidas)</div>
+              <div className="flex-1 min-w-0">
+                <div className="font-semibold text-sm sm:text-lg text-foreground">Horas de Barra Libre</div>
+                <div className="text-xs sm:text-sm text-muted-foreground hidden sm:block">Duración total de la barra (para cálculo de bebidas)</div>
               </div>
-              <Clock className="w-5 h-5 text-muted-foreground" />
+              <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground shrink-0" />
             </div>
           </div>
         </div>

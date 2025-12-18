@@ -111,8 +111,8 @@ const SpecialRequirements = ({ eventId }: SpecialRequirementsProps) => {
 
   return (
     <section>
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-3xl font-bold text-foreground">Requisitos Especiales</h2>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
+        <h2 className="text-2xl sm:text-3xl font-bold text-foreground">Requisitos Especiales</h2>
         {!isEditing ? (
           <Button size="sm" onClick={() => setIsEditing(true)}>
             <Edit className="w-4 h-4 mr-2" />
@@ -133,15 +133,15 @@ const SpecialRequirements = ({ eventId }: SpecialRequirementsProps) => {
       </div>
 
       <Tabs defaultValue="allergies" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 md:grid-cols-3 mb-6">
-          <TabsTrigger value="allergies"><AlertCircle className="w-4 h-4 mr-2" />Alergias</TabsTrigger>
-          <TabsTrigger value="furniture"><Armchair className="w-4 h-4 mr-2" />Mobiliario</TabsTrigger>
-          <TabsTrigger value="other"><Flower className="w-4 h-4 mr-2" />Otros</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-3 mb-6">
+          <TabsTrigger value="allergies" className="text-xs sm:text-sm"><AlertCircle className="w-4 h-4 sm:mr-2" /><span className="hidden sm:inline">Alergias</span></TabsTrigger>
+          <TabsTrigger value="furniture" className="text-xs sm:text-sm"><Armchair className="w-4 h-4 sm:mr-2" /><span className="hidden sm:inline">Mobiliario</span></TabsTrigger>
+          <TabsTrigger value="other" className="text-xs sm:text-sm"><Flower className="w-4 h-4 sm:mr-2" /><span className="hidden sm:inline">Otros</span></TabsTrigger>
         </TabsList>
 
         <TabsContent value="allergies">
           <Card className="bg-section-special border-none shadow-soft">
-            <div className="p-6">
+            <div className="p-4 sm:p-6">
               <Alert className="mb-6 bg-destructive/10 border-destructive/30">
                 <AlertCircle className="h-4 w-4 text-destructive" />
                 <AlertDescription className="text-destructive font-semibold">
@@ -201,7 +201,7 @@ const SpecialRequirements = ({ eventId }: SpecialRequirementsProps) => {
 
         <TabsContent value="furniture">
           <Card className="bg-section-special border-none shadow-soft">
-            <div className="p-6">
+            <div className="p-4 sm:p-6">
               <div className="space-y-4">
                 {(isEditing ? furnitureData : furniture).map((itemRaw, index) => {
                   const item = itemRaw as Furniture;
@@ -251,7 +251,7 @@ const SpecialRequirements = ({ eventId }: SpecialRequirementsProps) => {
 
         <TabsContent value="other">
           <Card className="bg-section-special border-none shadow-soft">
-            <div className="p-6 space-y-4">
+            <div className="p-4 sm:p-6 space-y-4">
               {(isEditing ? otherData : other).map((itemRaw, index) => {
                 const item = itemRaw as OtherReq;
                 return (
