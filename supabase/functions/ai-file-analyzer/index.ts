@@ -138,9 +138,10 @@ Si no encuentras información para alguna categoría, omítela del JSON.`;
     });
   } catch (error) {
     console.error('Error in ai-file-analyzer function:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
     return new Response(
       JSON.stringify({
-        error: error.message,
+        error: errorMessage,
         extractedData: {},
         itemsFound: 0,
       }),

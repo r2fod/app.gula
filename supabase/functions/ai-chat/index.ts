@@ -115,10 +115,11 @@ IMPORTANTE: Tu respuesta DEBE ser JSON válido. No incluyas texto adicional fuer
     });
   } catch (error) {
     console.error('Error in ai-chat function:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
     return new Response(
       JSON.stringify({
         message: 'Lo siento, hubo un error al procesar tu mensaje. Por favor, inténtalo de nuevo.',
-        error: error.message,
+        error: errorMessage,
       }),
       {
         status: 500,

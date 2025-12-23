@@ -4,6 +4,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import { Plus, Trash2, Users } from "lucide-react";
 import { SectionHeader } from "@/components/SectionHeader";
 import { useAuth } from "@/contexts/AuthContext";
