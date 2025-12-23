@@ -14,6 +14,7 @@ import EventDetail from "./pages/EventDetail";
 import CreateEvent from "./pages/CreateEvent";
 import Menus from "./pages/Menus";
 import NotFound from "./pages/NotFound";
+import Recipes from "./pages/Recipes";
 
 import { PageDecorations } from "@/components/PageDecorations";
 
@@ -78,6 +79,16 @@ const App = () => (
                     <ProtectedRoute>
                       <ErrorBoundary>
                         <Menus />
+                      </ErrorBoundary>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/escandallos"
+                  element={
+                    <ProtectedRoute>
+                      <ErrorBoundary>
+                        <Recipes />
                       </ErrorBoundary>
                     </ProtectedRoute>
                   }

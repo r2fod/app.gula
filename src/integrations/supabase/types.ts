@@ -431,6 +431,62 @@ export type Database = {
           },
         ]
       }
+      ingredients: {
+        Row: {
+          code: string | null
+          created_at: string
+          id: string
+          name: string
+          notes: string | null
+          package_cost: number | null
+          package_quantity: number | null
+          photo_url: string | null
+          supplier: string | null
+          unit: string | null
+          unit_cost: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          code?: string | null
+          created_at?: string
+          id?: string
+          name: string
+          notes?: string | null
+          package_cost?: number | null
+          package_quantity?: number | null
+          photo_url?: string | null
+          supplier?: string | null
+          unit?: string | null
+          unit_cost?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          code?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          notes?: string | null
+          package_cost?: number | null
+          package_quantity?: number | null
+          photo_url?: string | null
+          supplier?: string | null
+          unit?: string | null
+          unit_cost?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ingredients_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       menu_items: {
         Row: {
           category: string
@@ -613,6 +669,119 @@ export type Database = {
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      recipe_items: {
+        Row: {
+          created_at: string
+          id: string
+          ingredient_id: string | null
+          ingredient_name: string
+          line_cost: number | null
+          notes: string | null
+          quantity: number
+          recipe_id: string
+          sort_order: number | null
+          unit: string | null
+          unit_cost: number | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          ingredient_id?: string | null
+          ingredient_name: string
+          line_cost?: number | null
+          notes?: string | null
+          quantity?: number
+          recipe_id: string
+          sort_order?: number | null
+          unit?: string | null
+          unit_cost?: number | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          ingredient_id?: string | null
+          ingredient_name?: string
+          line_cost?: number | null
+          notes?: string | null
+          quantity?: number
+          recipe_id?: string
+          sort_order?: number | null
+          unit?: string | null
+          unit_cost?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recipe_items_ingredient_id_fkey"
+            columns: ["ingredient_id"]
+            isOneToOne: false
+            referencedRelation: "ingredients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recipe_items_recipe_id_fkey"
+            columns: ["recipe_id"]
+            isOneToOne: false
+            referencedRelation: "recipes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      recipes: {
+        Row: {
+          base_cost: number | null
+          category: string | null
+          created_at: string
+          id: string
+          is_active: boolean | null
+          margin_percent: number | null
+          name: string
+          notes: string | null
+          photo_url: string | null
+          portions: number | null
+          selling_price: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          base_cost?: number | null
+          category?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          margin_percent?: number | null
+          name: string
+          notes?: string | null
+          photo_url?: string | null
+          portions?: number | null
+          selling_price?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          base_cost?: number | null
+          category?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          margin_percent?: number | null
+          name?: string
+          notes?: string | null
+          photo_url?: string | null
+          portions?: number | null
+          selling_price?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recipes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
