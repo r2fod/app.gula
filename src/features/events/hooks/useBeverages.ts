@@ -143,7 +143,9 @@ export const useBeverages = (eventId: string, totalGuests: number) => {
   useEffect(() => {
     if (timings) {
       if (timings.bar_hours) setBarHours(timings.bar_hours);
-      else if (timings.bar_start && timings.bar_end) calculateAndSetBarHours(timings);
+      else if ('bar_start' in timings && 'bar_end' in timings && timings.bar_start && timings.bar_end) {
+        calculateAndSetBarHours(timings);
+      }
     }
   }, [timings]);
 
@@ -265,7 +267,7 @@ export const useBeverages = (eventId: string, totalGuests: number) => {
           unit_price: item.unit_price,
           notes: item.notes || null,
           is_extra: item.is_extra || false,
-          //photo_url: item.photo_url || null,
+          photo_url: item.photo_url || null,
         }));
 
         const { error: insertError } = await supabase.from("beverages").insert(recordsToInsert);

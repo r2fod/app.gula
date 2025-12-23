@@ -61,6 +61,7 @@ export type Database = {
           is_extra: boolean | null
           item_name: string
           notes: string | null
+          photo_url: string | null
           price_per_person: number | null
           quantity: number
           total_price: number | null
@@ -74,6 +75,7 @@ export type Database = {
           is_extra?: boolean | null
           item_name: string
           notes?: string | null
+          photo_url?: string | null
           price_per_person?: number | null
           quantity?: number
           total_price?: number | null
@@ -87,6 +89,7 @@ export type Database = {
           is_extra?: boolean | null
           item_name?: string
           notes?: string | null
+          photo_url?: string | null
           price_per_person?: number | null
           quantity?: number
           total_price?: number | null
