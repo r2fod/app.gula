@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -14,10 +14,10 @@ import {
   Euro,
   TrendingUp,
   Package,
-  Filter
+  Filter,
+  ArrowLeft
 } from "lucide-react";
 import { PageTransition } from "@/components/PageTransition";
-import { SectionHeader } from "@/components/SectionHeader";
 import { RecipeCard } from "@/features/recipes/components/RecipeCard";
 import { RecipeDetail } from "@/features/recipes/components/RecipeDetail";
 import { RecipeForm } from "@/features/recipes/components/RecipeForm";
@@ -96,19 +96,34 @@ export default function Recipes() {
         <div className="container mx-auto px-4 py-8 max-w-7xl">
           {/* Header */}
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-            <div>
-              <h1 className="text-3xl font-bold text-foreground flex items-center gap-3">
-                <ChefHat className="w-8 h-8 text-primary" />
-                Escandallos
-              </h1>
-              <p className="text-muted-foreground mt-1">
-                Gestiona las recetas y costes de tus platos
-              </p>
+            <div className="flex items-center gap-4">
+              <Button variant="ghost" size="icon" asChild>
+                <Link to="/events">
+                  <ArrowLeft className="w-5 h-5" />
+                </Link>
+              </Button>
+              <div>
+                <h1 className="text-3xl font-bold text-foreground flex items-center gap-3">
+                  <ChefHat className="w-8 h-8 text-primary" />
+                  Escandallos
+                </h1>
+                <p className="text-muted-foreground mt-1">
+                  Gestiona las recetas y costes de tus platos
+                </p>
+              </div>
             </div>
-            <Button onClick={() => { setEditingRecipe(null); setShowForm(true); }} size="lg">
-              <Plus className="w-5 h-5 mr-2" />
-              Nuevo Escandallo
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" asChild>
+                <Link to="/ingredientes">
+                  <Package className="w-4 h-4 mr-2" />
+                  Ver Ingredientes
+                </Link>
+              </Button>
+              <Button onClick={() => { setEditingRecipe(null); setShowForm(true); }} size="lg">
+                <Plus className="w-5 h-5 mr-2" />
+                Nuevo Escandallo
+              </Button>
+            </div>
           </div>
 
           {/* Stats cards */}
