@@ -30,7 +30,7 @@ const emptyItem: RecipeItem = {
 export function RecipeForm({ recipe, open, onClose, onSave, ingredients }: RecipeFormProps) {
   const { toast } = useToast();
   const { calculateRecipeCost, calculateSellingPrice } = useRecipes();
-  
+
   const [formData, setFormData] = useState<Omit<Recipe, "id">>({
     name: "",
     category: "cocktail",
@@ -39,11 +39,12 @@ export function RecipeForm({ recipe, open, onClose, onSave, ingredients }: Recip
     margin_percent: 40,
     selling_price: 0,
     photo_url: "",
+    model_3d_url: "",
     notes: "",
     is_active: true,
     items: [],
   });
-  
+
   const [items, setItems] = useState<RecipeItem[]>([]);
   const [uploading, setUploading] = useState(false);
 
@@ -57,6 +58,7 @@ export function RecipeForm({ recipe, open, onClose, onSave, ingredients }: Recip
         margin_percent: recipe.margin_percent,
         selling_price: recipe.selling_price,
         photo_url: recipe.photo_url || "",
+        model_3d_url: recipe.model_3d_url || "",
         notes: recipe.notes || "",
         is_active: recipe.is_active,
         items: recipe.items || [],
@@ -71,6 +73,7 @@ export function RecipeForm({ recipe, open, onClose, onSave, ingredients }: Recip
         margin_percent: 40,
         selling_price: 0,
         photo_url: "",
+        model_3d_url: "",
         notes: "",
         is_active: true,
         items: [],
@@ -151,6 +154,33 @@ export function RecipeForm({ recipe, open, onClose, onSave, ingredients }: Recip
     setUploading(false);
   };
 
+  const handleModelUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Solo permitir archivos .glb o .gltf
+    if (!file.name.endsWith('.glb') && !file.name.endsWith('.gltf')) {
+      toast({ title: "Error", description: "Solo se admiten archivos .glb o .gltf", variant: "destructive" });
+      return;
+    }
+
+    setUploading(true);
+    const fileExt = file.name.split('.').pop();
+    const fileName = `model-${Date.now()}.${fileExt}`;
+
+    const { error } = await supabase.storage.from('menus').upload(fileName, file);
+
+    if (error) {
+      toast({ title: "Error", description: "No se pudo subir el modelo 3D", variant: "destructive" });
+      setUploading(false);
+      return;
+    }
+
+    const { data: urlData } = supabase.storage.from('menus').getPublicUrl(fileName);
+    setFormData(prev => ({ ...prev, model_3d_url: urlData.publicUrl }));
+    setUploading(false);
+  };
+
   const handleSubmit = () => {
     if (!formData.name.trim()) {
       toast({ title: "Error", description: "El nombre es obligatorio", variant: "destructive" });
@@ -191,8 +221,8 @@ export function RecipeForm({ recipe, open, onClose, onSave, ingredients }: Recip
 
             <div className="space-y-2">
               <Label>Categoría</Label>
-              <Select 
-                value={formData.category} 
+              <Select
+                value={formData.category}
                 onValueChange={(value) => setFormData({ ...formData, category: value })}
               >
                 <SelectTrigger>
@@ -232,6 +262,26 @@ export function RecipeForm({ recipe, open, onClose, onSave, ingredients }: Recip
                     </span>
                   </Button>
                   <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />
+                </label>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Modelo 3D (URL .glb)</Label>
+              <div className="flex gap-2">
+                <Input
+                  value={formData.model_3d_url}
+                  onChange={(e) => setFormData({ ...formData, model_3d_url: e.target.value })}
+                  placeholder="https://ejemplo.com/modelo.glb"
+                  className="flex-1"
+                />
+                <label className="cursor-pointer">
+                  <Button variant="outline" size="icon" asChild disabled={uploading}>
+                    <span>
+                      <Upload className="h-4 w-4" />
+                    </span>
+                  </Button>
+                  <input type="file" accept=".glb,.gltf" className="hidden" onChange={handleModelUpload} />
                 </label>
               </div>
             </div>
@@ -284,8 +334,8 @@ export function RecipeForm({ recipe, open, onClose, onSave, ingredients }: Recip
                         />
                       </div>
                       <div className="col-span-4 md:col-span-2">
-                        <Select 
-                          value={item.unit} 
+                        <Select
+                          value={item.unit}
                           onValueChange={(value) => handleItemChange(index, "unit", value)}
                         >
                           <SelectTrigger className="h-9">
@@ -348,7 +398,7 @@ export function RecipeForm({ recipe, open, onClose, onSave, ingredients }: Recip
                   <Label className="text-xs text-muted-foreground">Coste Base</Label>
                   <div className="text-2xl font-bold">{formData.base_cost.toFixed(2)}€</div>
                 </div>
-                
+
                 <div className="space-y-1">
                   <Label className="text-xs text-muted-foreground">Margen (%)</Label>
                   <Input
@@ -360,12 +410,12 @@ export function RecipeForm({ recipe, open, onClose, onSave, ingredients }: Recip
                     className="text-lg font-semibold"
                   />
                 </div>
-                
+
                 <div className="space-y-1">
                   <Label className="text-xs text-muted-foreground">Precio Venta</Label>
                   <div className="text-2xl font-bold text-primary">{formData.selling_price.toFixed(2)}€</div>
                 </div>
-                
+
                 <div className="space-y-1">
                   <Label className="text-xs text-muted-foreground">Beneficio</Label>
                   <div className="text-2xl font-bold text-green-600">

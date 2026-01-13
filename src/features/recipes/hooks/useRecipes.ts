@@ -11,7 +11,10 @@ export interface Ingredient {
   unit: string;
   package_cost: number;
   unit_cost: number;
+  cost_per_unit?: number;
+  waste_percentage?: number;
   supplier?: string;
+  supplier_id?: string;
   photo_url?: string;
   notes?: string;
 }
@@ -37,6 +40,7 @@ export interface Recipe {
   margin_percent: number;
   selling_price: number;
   photo_url?: string;
+  model_3d_url?: string;
   notes?: string;
   is_active: boolean;
   items?: RecipeItem[];
@@ -57,7 +61,7 @@ export const useRecipes = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Fetch all recipes
+  // Obtener todas las recetas
   const { data: recipes = [], isLoading: loadingRecipes } = useQuery({
     queryKey: ["recipes", isDemo],
     queryFn: async () => {
@@ -79,7 +83,7 @@ export const useRecipes = () => {
     enabled: !!user || isDemo,
   });
 
-  // Fetch all ingredients
+  // Obtener todos los ingredientes
   const { data: ingredients = [], isLoading: loadingIngredients } = useQuery({
     queryKey: ["ingredients", isDemo],
     queryFn: async () => {
@@ -101,7 +105,7 @@ export const useRecipes = () => {
     enabled: !!user || isDemo,
   });
 
-  // Fetch recipe with items
+  // Obtener una receta con sus ingredientes (items)
   const fetchRecipeWithItems = async (recipeId: string): Promise<Recipe | null> => {
     if (isDemo) {
       const saved = localStorage.getItem("gula_demo_recipes");
@@ -129,7 +133,7 @@ export const useRecipes = () => {
     return { ...recipe, items: items || [] } as Recipe;
   };
 
-  // Create recipe mutation
+  // Mutación para crear una receta
   const createRecipe = useMutation({
     mutationFn: async (recipe: Omit<Recipe, "id">) => {
       if (isDemo) {
@@ -154,6 +158,7 @@ export const useRecipes = () => {
           margin_percent: recipe.margin_percent,
           selling_price: recipe.selling_price,
           photo_url: recipe.photo_url,
+          model_3d_url: recipe.model_3d_url,
           notes: recipe.notes,
           is_active: recipe.is_active,
         })
@@ -162,7 +167,7 @@ export const useRecipes = () => {
 
       if (error) throw error;
 
-      // Insert recipe items
+      // Insertar los ingredientes de la receta
       if (recipe.items && recipe.items.length > 0) {
         const itemsToInsert = recipe.items.map((item, index) => ({
           recipe_id: data.id,
@@ -194,7 +199,7 @@ export const useRecipes = () => {
     },
   });
 
-  // Update recipe mutation
+  // Mutación para actualizar una receta
   const updateRecipe = useMutation({
     mutationFn: async ({ id, ...recipe }: Recipe) => {
       if (isDemo) {
@@ -217,6 +222,7 @@ export const useRecipes = () => {
           margin_percent: recipe.margin_percent,
           selling_price: recipe.selling_price,
           photo_url: recipe.photo_url,
+          model_3d_url: recipe.model_3d_url,
           notes: recipe.notes,
           is_active: recipe.is_active,
         })
@@ -224,7 +230,7 @@ export const useRecipes = () => {
 
       if (error) throw error;
 
-      // Delete existing items and re-insert
+      // Borrar ingredientes existentes y reinsertar los nuevos
       await supabase.from("recipe_items").delete().eq("recipe_id", id);
 
       if (recipe.items && recipe.items.length > 0) {
@@ -258,7 +264,7 @@ export const useRecipes = () => {
     },
   });
 
-  // Delete recipe mutation
+  // Mutación para eliminar una receta
   const deleteRecipe = useMutation({
     mutationFn: async (id: string) => {
       if (isDemo) {
@@ -281,7 +287,7 @@ export const useRecipes = () => {
     },
   });
 
-  // Create ingredient mutation
+  // Mutación para crear un ingrediente
   const createIngredient = useMutation({
     mutationFn: async (ingredient: Omit<Ingredient, "id">) => {
       if (isDemo) {
@@ -313,12 +319,12 @@ export const useRecipes = () => {
     },
   });
 
-  // Calculate recipe cost
+  // Calcular el coste total de la receta sumando sus líneas
   const calculateRecipeCost = (items: RecipeItem[]): number => {
     return items.reduce((sum, item) => sum + (item.line_cost || 0), 0);
   };
 
-  // Calculate selling price with margin
+  // Calcular el precio de venta sugerido basado en un margen objetivo
   const calculateSellingPrice = (baseCost: number, marginPercent: number): number => {
     if (marginPercent >= 100) return baseCost * 2;
     return baseCost / (1 - marginPercent / 100);

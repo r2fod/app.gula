@@ -5,225 +5,124 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Bot, Send, X, Loader2, Sparkles, MessageSquare, Paperclip } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
-
-interface Message {
-  role: "user" | "assistant";
-  content: string;
-}
+import { useAI } from "@/contexts/AIContext";
+import { useAIChat } from "@/hooks/useAIChat";
 
 interface AIAssistantProps {
   eventId?: string;
 }
 
+/**
+ * Componente de interfaz para el Asistente de IA.
+ * Utiliza el hook useAIChat para comunicarse con el "Master Brain" de Gula.
+ */
 export default function AIAssistant({ eventId }: AIAssistantProps) {
   const { user } = useAuth();
-  const { toast } = useToast();
-  // Estado para controlar si el asistente está abierto o cerrado.
-  const [isOpen, setIsOpen] = useState(false);
-  // Almacena el historial de mensajes de la conversación.
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      role: 'assistant',
-      content: '¡Hola! Soy tu asistente de IA para este evento. ¿En qué puedo ayudarte hoy?',
-    },
-  ]);
-  // Almacena el texto actual del input del usuario.
-  const [input, setInput] = useState("");
-  // Indica si se está esperando una respuesta del asistente de IA.
-  const [isLoading, setIsLoading] = useState(false);
-  // Referencia para el input de archivos
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { messages, updateMessageContent } = useAI();
+  const { sendMessage, uploadAndAnalyzeFile, loading } = useAIChat(eventId);
 
-  // Referencia para hacer scroll automático al final de la conversación.
+  const [isOpen, setIsOpen] = useState(false);
+  const [input, setInput] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
+  // Scroll automático al recibir nuevos mensajes o actualizaciones de streaming
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [messages]);
+  }, [messages, loading]);
 
-  // Maneja el envío de mensajes al asistente de IA.
-  const sendMessage = async () => {
-    // No enviar si el input está vacío, ya está cargando o el usuario no está autenticado.
-    if (!input.trim() || isLoading || !user) return;
+  /**
+   * Gestiona el envío de mensajes a través del hook unificado.
+   */
+  const handleSend = async () => {
+    if (!input.trim() || loading || !user) return;
 
-    const userMessage: Message = { role: "user", content: input };
-    // Añade el mensaje del usuario al historial.
-    setMessages(prev => [...prev, userMessage]);
-    // Limpia el input.
+    const userQuery = input;
+    const currentMessageIndex = messages.length;
     setInput("");
-    // Activa el estado de carga.
-    setIsLoading(true);
 
-    let assistantContent = "";
-
-    try {
-      // Realiza la llamada a la función de Supabase que integra con el motor de IA.
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-assistant`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-        },
-        body: JSON.stringify({
-          // Envía el historial completo de mensajes para mantener el contexto.
-          messages: [...messages, userMessage],
-          userId: user.id,
-          eventId,
-        }),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Error al conectar con el asistente");
+    // Llamada con streaming activado para el chat fluido
+    await sendMessage(userQuery, {
+      stream: true,
+      onStreamUpdate: (text) => {
+        // Actualizamos el mensaje del asistente (índice currentMessageIndex + 1 porque userQuery acaba de ser añadido)
+        updateMessageContent(currentMessageIndex + 1, text);
       }
-
-      if (!response.body) throw new Error("No response body");
-
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      let textBuffer = "";
-
-      // Add empty assistant message
-      setMessages(prev => [...prev, { role: "assistant", content: "" }]);
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        textBuffer += decoder.decode(value, { stream: true });
-
-        let newlineIndex: number;
-        while ((newlineIndex = textBuffer.indexOf("\n")) !== -1) {
-          let line = textBuffer.slice(0, newlineIndex);
-          textBuffer = textBuffer.slice(newlineIndex + 1);
-
-          if (line.endsWith("\r")) line = line.slice(0, -1);
-          if (line.startsWith(":") || line.trim() === "") continue;
-          if (!line.startsWith("data: ")) continue;
-
-          const jsonStr = line.slice(6).trim();
-          if (jsonStr === "[DONE]") break;
-
-          try {
-            const parsed = JSON.parse(jsonStr);
-            const content = parsed.choices?.[0]?.delta?.content;
-            if (content) {
-              assistantContent += content;
-              setMessages(prev => {
-                const updated = [...prev];
-                updated[updated.length - 1] = { role: "assistant", content: assistantContent };
-                return updated;
-              });
-            }
-          } catch {
-            textBuffer = line + "\n" + textBuffer;
-            break;
-          }
-        }
-      }
-    } catch (error) {
-      console.error("AI error:", error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error instanceof Error ? error.message : "Error al procesar tu mensaje",
-      });
-      // Remove the empty assistant message if there was an error
-      if (assistantContent === "") {
-        setMessages(prev => prev.slice(0, -1));
-      }
-    } finally {
-      setIsLoading(false);
-    }
+    });
   };
 
-  // Maneja la subida y análisis de archivos
+  /**
+   * Gestiona la subida y análisis de archivos externos.
+   */
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !user) return;
-
-    setIsLoading(true);
-    setMessages(prev => [...prev, { 
-      role: "user", 
-      content: `📎 Analizando archivo: ${file.name}` 
-    }]);
-
-    try {
-      // Subir archivo a Supabase Storage
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${crypto.randomUUID()}.${fileExt}`;
-      const filePath = `ai-uploads/${fileName}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('event-files')
-        .upload(filePath, file);
-
-      if (uploadError) throw uploadError;
-
-      // Obtener URL pública
-      const { data: { publicUrl } } = supabase.storage
-        .from('event-files')
-        .getPublicUrl(filePath);
-
-      // Llamar a la Edge Function de análisis
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-file-analyzer`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-        },
-        body: JSON.stringify({
-          fileUrl: publicUrl,
-          fileName: file.name,
-          fileType: fileExt,
-          eventId,
-        }),
-      });
-
-      if (!response.ok) throw new Error("Error al analizar el archivo");
-
-      const data = await response.json();
-      
-      const analysisMessage = `✅ He analizado "${file.name}". Encontré ${data.itemsFound || 0} elementos.\n\n` +
-        `${data.extractedData.beverages ? `🍷 Bebidas: ${data.extractedData.beverages.length}\n` : ''}` +
-        `${data.extractedData.menuItems ? `🍽️ Platos: ${data.extractedData.menuItems.length}\n` : ''}` +
-        `${data.extractedData.staff ? `👥 Personal: ${data.extractedData.staff.length}\n` : ''}` +
-        `\n¿Quieres que añada estos datos al evento?`;
-
-      setMessages(prev => [...prev, { 
-        role: "assistant", 
-        content: analysisMessage 
-      }]);
-
-    } catch (error) {
-      console.error("Error analyzing file:", error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "No pude analizar el archivo. Inténtalo de nuevo.",
-      });
-      setMessages(prev => [...prev, { 
-        role: "assistant", 
-        content: "Lo siento, hubo un error al analizar el archivo." 
-      }]);
-    } finally {
-      setIsLoading(false);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
-    }
+    await uploadAndAnalyzeFile(file);
+    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
-  const suggestions = [
-    "¿Cuántas bebidas necesito para 150 invitados?",
-    "Genera una lista de bebidas para mi evento",
-    "Crea un menú típico para este evento",
-    "Calcula el personal necesario",
-  ];
+  /**
+   * Genera sugerencias contextuales basadas en la página donde se encuentra el usuario.
+   */
+  const getContextualSuggestions = () => {
+    const path = window.location.pathname;
+
+    if (path.includes('/escandallos')) {
+      return [
+        "¿Cómo puedo mejorar el margen de este plato?",
+        "Calcula el coste total de mis recetas",
+        "Busca ingredientes con precio alto",
+        "Sugiéreme un precio de venta para un margen del 70%",
+      ];
+    }
+
+    if (path.includes('/events')) {
+      return [
+        "¿Cuántas bebidas necesito para 150 invitados?",
+        "Genera una lista de personal para una boda",
+        "Busca eventos similares al de la semana que viene",
+        "Calcula el presupuesto estimado de mi próximo evento",
+      ];
+    }
+
+    if (path.includes('/menus')) {
+      return [
+        "Crea un menú de gala para 50 personas",
+        "Sugiéreme platos para un cóctel de pie",
+        "Verifica alergias comunes en mis platos",
+        "Añade un postre de chocolate a este menú",
+      ];
+    }
+
+    if (path.includes('/ingredientes')) {
+      return [
+        "¿Cuáles son los 5 ingredientes más caros?",
+        "Busca ingredientes sin stock",
+        "Analiza la variación de precios este mes",
+        "¿Qué proveedor tiene más ingredientes?",
+      ];
+    }
+
+    if (path.includes('/analytics')) {
+      return [
+        "¿Por qué el margen de este evento fue bajo?",
+        "Analiza el coste de personal este mes",
+        "¿Cómo puedo compensar pérdidas en el próximo evento?",
+        "Sugiéreme mejoras de rentabilidad",
+      ];
+    }
+
+    return [
+      "¿Cómo puedo ayudarte hoy?",
+      "Dime un resumen de mis próximos eventos",
+      "¿Cuál es mi plato más rentable?",
+      "Ayúdame a planificar la semana",
+    ];
+  };
+
+  const suggestions = getContextualSuggestions();
 
   if (!isOpen) {
     return (
@@ -242,7 +141,7 @@ export default function AIAssistant({ eventId }: AIAssistantProps) {
       <CardHeader className="flex flex-row items-center justify-between py-3 px-4 border-b bg-primary text-primary-foreground rounded-t-lg">
         <CardTitle className="text-base flex items-center gap-2">
           <Sparkles className="h-5 w-5" />
-          Asistente IA Gula
+          Cerebro Gula
         </CardTitle>
         <Button variant="ghost" size="icon" onClick={() => setIsOpen(false)} className="h-8 w-8 text-primary-foreground hover:bg-primary/80">
           <X className="h-4 w-4" />
@@ -254,7 +153,7 @@ export default function AIAssistant({ eventId }: AIAssistantProps) {
           {messages.length === 0 ? (
             <div className="space-y-4">
               <p className="text-sm text-muted-foreground text-center py-4">
-                ¡Hola! Soy tu asistente de Gula Catering. Puedo ayudarte con consultas sobre eventos, calcular cantidades, buscar eventos similares y más.
+                ¡Hola! Soy el cerebro inteligente de Gula. Puedo ayudarte con eventos, escandallos y planificación proactiva.
               </p>
               <div className="space-y-2">
                 <p className="text-xs font-medium text-muted-foreground">Sugerencias:</p>
@@ -264,9 +163,7 @@ export default function AIAssistant({ eventId }: AIAssistantProps) {
                     variant="outline"
                     size="sm"
                     className="w-full text-left justify-start h-auto py-2 text-xs"
-                    onClick={() => {
-                      setInput(suggestion);
-                    }}
+                    onClick={() => setInput(suggestion)}
                   >
                     <MessageSquare className="h-3 w-3 mr-2 shrink-0" />
                     {suggestion}
@@ -278,23 +175,33 @@ export default function AIAssistant({ eventId }: AIAssistantProps) {
             <div className="space-y-4">
               {messages.map((msg, i) => (
                 <div
-                  key={i}
+                  key={msg.id || i}
                   className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
                 >
                   <div
                     className={`max-w-[85%] rounded-lg px-3 py-2 text-sm ${msg.role === "user"
                       ? "bg-primary text-primary-foreground"
-                      : "bg-muted"
+                      : "bg-muted shadow-sm"
                       }`}
                   >
                     <p className="whitespace-pre-wrap">{msg.content}</p>
+                    {msg.actions && msg.actions.length > 0 && (
+                      <div className="mt-2 space-y-1">
+                        {msg.actions.map((action: any, idx: number) => (
+                          <div key={idx} className="p-2 bg-background/50 rounded border text-xs flex items-center justify-between">
+                            <span>Acción: {action.type}</span>
+                            <Button size="sm" variant="secondary" className="h-6 text-[10px]">Ejecutar</Button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
-              {isLoading && messages[messages.length - 1]?.content === "" && (
+              {loading && messages[messages.length - 1]?.content === "" && (
                 <div className="flex justify-start">
                   <div className="bg-muted rounded-lg px-3 py-2">
-                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <Loader2 className="h-4 w-4 animate-spin text-primary" />
                   </div>
                 </div>
               )}
@@ -313,7 +220,7 @@ export default function AIAssistant({ eventId }: AIAssistantProps) {
           <form
             onSubmit={(e) => {
               e.preventDefault();
-              sendMessage();
+              handleSend();
             }}
             className="flex gap-2"
           >
@@ -322,7 +229,7 @@ export default function AIAssistant({ eventId }: AIAssistantProps) {
               size="icon"
               variant="outline"
               onClick={() => fileInputRef.current?.click()}
-              disabled={isLoading}
+              disabled={loading}
               className="shrink-0"
             >
               <Paperclip className="h-4 w-4" />
@@ -330,17 +237,14 @@ export default function AIAssistant({ eventId }: AIAssistantProps) {
             <Input
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Escribe tu pregunta o sube un archivo..."
-              disabled={isLoading}
+              placeholder="Escribe tu mensaje..."
+              disabled={loading}
               className="flex-1"
             />
-            <Button type="submit" size="icon" disabled={isLoading || !input.trim()}>
-              {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+            <Button type="submit" size="icon" disabled={loading || !input.trim()}>
+              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
             </Button>
           </form>
-          <p className="text-xs text-muted-foreground mt-2 text-center">
-            Puedes subir PDFs, Excel o imágenes para analizarlos
-          </p>
         </div>
       </CardContent>
     </Card>

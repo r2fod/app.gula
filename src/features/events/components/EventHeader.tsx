@@ -1,3 +1,10 @@
+// ------------------------------------------------------------
+// Archivo: EventHeader.tsx
+// Descripción: Componente que muestra la cabecera del evento, con información
+// del lugar, fecha, tipo y número de invitados. Permite edición rápida de
+// los datos principales cuando el usuario no está en modo demo.
+// ------------------------------------------------------------
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -10,6 +17,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 
+// Representa la entidad Evento con sus atributos
 interface Event {
   id: string;
   event_type: string;
@@ -21,11 +29,13 @@ interface Event {
   staff: number | null;
 }
 
+// Props que recibe el componente EventHeader
 interface EventHeaderProps {
   event: Event;
   onUpdate: () => void;
 }
 
+// Mapeo de tipos de evento a etiquetas legibles
 const eventTypeLabels: Record<string, string> = {
   boda: "Boda",
   produccion: "Producción",
@@ -51,6 +61,7 @@ const EventHeader = ({ event, onUpdate }: EventHeaderProps) => {
 
   // Maneja la acción de guardado. 
   // En modo demo, previene la escritura y muestra un aviso.
+  // Maneja la acción de guardar los cambios del formulario
   const handleSave = async () => {
     if (isDemo) {
       toast({
@@ -90,6 +101,7 @@ const EventHeader = ({ event, onUpdate }: EventHeaderProps) => {
   };
 
   // Cancela la edición y restaura los valores originales.
+  // Cancela la edición y restaura valores originales
   const handleCancel = () => {
     setFormData({
       venue: event.venue,
@@ -100,11 +112,13 @@ const EventHeader = ({ event, onUpdate }: EventHeaderProps) => {
     setIsEditing(false);
   };
 
+  // Construye una lista de descripciones de invitados
   const guestBreakdown = [];
   if (event.adults) guestBreakdown.push(`${event.adults} adultos`);
   if (event.children) guestBreakdown.push(`${event.children} niños`);
   if (event.staff) guestBreakdown.push(`${event.staff} staff`);
 
+  // Renderiza la cabecera del evento con información y controles
   return (
     <header className="bg-primary text-primary-foreground">
       <div className="container mx-auto px-4 py-6">

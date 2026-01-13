@@ -1,14 +1,13 @@
-import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useState, lazy, Suspense } from "react";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { 
-  ChefHat, 
-  Euro, 
-  Percent, 
-  TrendingUp, 
+import {
+  ChefHat,
+  Euro,
+  Percent,
+  TrendingUp,
   Users,
   Package,
   Edit,
@@ -16,8 +15,11 @@ import {
   Calculator,
   PieChart
 } from "lucide-react";
-import { Recipe, RecipeItem, RECIPE_CATEGORIES } from "../hooks/useRecipes";
+import { Recipe, RECIPE_CATEGORIES } from "../hooks/useRecipes";
 import { cn } from "@/lib/utils";
+
+// Carga diferida del visor 3D para no impactar el rendimiento inicial del detalle
+const Recipe3DViewer = lazy(() => import("./Recipe3DViewer"));
 
 interface RecipeDetailProps {
   recipe: Recipe | null;
@@ -26,21 +28,29 @@ interface RecipeDetailProps {
   onEdit: (recipe: Recipe) => void;
 }
 
+/**
+ * Componente para mostrar el detalle completo de una receta (escandallo).
+ * Incluye visualización 3D (si existe), desglose de costes e ingredientes.
+ */
 export function RecipeDetail({ recipe, open, onClose, onEdit }: RecipeDetailProps) {
   if (!recipe) return null;
 
   const categoryLabel = RECIPE_CATEGORIES.find(c => c.value === recipe.category)?.label || recipe.category;
+  // Cálculo de beneficio bruto unitario
   const profit = recipe.selling_price - recipe.base_cost;
-  const profitPercent = recipe.selling_price > 0 ? (profit / recipe.selling_price) * 100 : 0;
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto p-0">
-        {/* Header with image */}
-        <div className="relative h-48 bg-gradient-to-br from-primary/10 to-primary/30">
-          {recipe.photo_url ? (
-            <img 
-              src={recipe.photo_url} 
+        {/* Cabecera con Visor 3D o Imagen */}
+        <div className="relative h-64 bg-gradient-to-br from-primary/10 to-primary/30">
+          {recipe.model_3d_url ? (
+            <Suspense fallback={<div className="w-full h-full flex items-center justify-center text-muted-foreground">Cargando 3D...</div>}>
+              <Recipe3DViewer modelUrl={recipe.model_3d_url} />
+            </Suspense>
+          ) : recipe.photo_url ? (
+            <img
+              src={recipe.photo_url}
               alt={recipe.name}
               className="w-full h-full object-cover"
             />
@@ -49,25 +59,26 @@ export function RecipeDetail({ recipe, open, onClose, onEdit }: RecipeDetailProp
               <ChefHat className="w-24 h-24 text-primary/20" />
             </div>
           )}
-          <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent" />
-          
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="absolute top-3 right-3 bg-background/80 backdrop-blur-sm"
+
+          {!recipe.model_3d_url && <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent" />}
+
+          <Button
+            variant="ghost"
+            size="icon"
+            className="absolute top-3 right-3 bg-background/80 backdrop-blur-sm z-10"
             onClick={onClose}
           >
             <X className="h-4 w-4" />
           </Button>
 
-          <div className="absolute bottom-4 left-6 right-6">
-            <Badge variant="secondary" className="mb-2">{categoryLabel}</Badge>
-            <h2 className="text-2xl font-bold text-foreground">{recipe.name}</h2>
+          <div className="absolute bottom-4 left-6 right-6 pointer-events-none">
+            <Badge variant="secondary" className="mb-2 pointer-events-auto shadow-sm backdrop-blur-sm bg-background/50">{categoryLabel}</Badge>
+            <h2 className="text-2xl font-bold text-foreground drop-shadow-md">{recipe.name}</h2>
           </div>
         </div>
 
         <div className="p-6 space-y-6">
-          {/* Key metrics */}
+          {/* Métricas clave de rentabilidad */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <Card className="bg-muted/30 border-none">
               <CardContent className="p-4 text-center">
@@ -76,7 +87,7 @@ export function RecipeDetail({ recipe, open, onClose, onEdit }: RecipeDetailProp
                 <p className="text-xl font-bold">{recipe.base_cost.toFixed(2)}€</p>
               </CardContent>
             </Card>
-            
+
             <Card className="bg-primary/10 border-none">
               <CardContent className="p-4 text-center">
                 <TrendingUp className="w-5 h-5 mx-auto mb-1 text-primary" />
@@ -84,7 +95,7 @@ export function RecipeDetail({ recipe, open, onClose, onEdit }: RecipeDetailProp
                 <p className="text-xl font-bold text-primary">{recipe.selling_price.toFixed(2)}€</p>
               </CardContent>
             </Card>
-            
+
             <Card className="bg-green-500/10 border-none">
               <CardContent className="p-4 text-center">
                 <Percent className="w-5 h-5 mx-auto mb-1 text-green-600" />
@@ -92,7 +103,7 @@ export function RecipeDetail({ recipe, open, onClose, onEdit }: RecipeDetailProp
                 <p className="text-xl font-bold text-green-600">{recipe.margin_percent}%</p>
               </CardContent>
             </Card>
-            
+
             <Card className="bg-amber-500/10 border-none">
               <CardContent className="p-4 text-center">
                 <Calculator className="w-5 h-5 mx-auto mb-1 text-amber-600" />
@@ -102,21 +113,21 @@ export function RecipeDetail({ recipe, open, onClose, onEdit }: RecipeDetailProp
             </Card>
           </div>
 
-          {/* Additional info */}
+          {/* Información de raciones */}
           {recipe.portions > 1 && (
             <div className="flex items-center gap-4 p-4 bg-muted/30 rounded-lg">
               <Users className="w-5 h-5 text-muted-foreground" />
               <div>
                 <p className="font-medium">{recipe.portions} raciones</p>
                 <p className="text-sm text-muted-foreground">
-                  {(recipe.base_cost / recipe.portions).toFixed(2)}€ coste/ración • 
+                  {(recipe.base_cost / recipe.portions).toFixed(2)}€ coste/ración •
                   {(recipe.selling_price / recipe.portions).toFixed(2)}€ PVP/ración
                 </p>
               </div>
             </div>
           )}
 
-          {/* Ingredients table */}
+          {/* Tabla de ingredientes detallada */}
           {recipe.items && recipe.items.length > 0 && (
             <Card>
               <CardHeader className="pb-3">
@@ -169,7 +180,7 @@ export function RecipeDetail({ recipe, open, onClose, onEdit }: RecipeDetailProp
             </Card>
           )}
 
-          {/* Cost breakdown visual */}
+          {/* Visualización de distribución de costes (Gráfico simple) */}
           {recipe.items && recipe.items.length > 0 && (
             <Card>
               <CardHeader className="pb-3">
@@ -182,10 +193,10 @@ export function RecipeDetail({ recipe, open, onClose, onEdit }: RecipeDetailProp
                 <div className="space-y-2">
                   {recipe.items
                     .sort((a, b) => b.line_cost - a.line_cost)
-                    .slice(0, 5)
+                    .slice(0, 5) // Mostramos los 5 ingredientes más caros
                     .map((item, index) => {
-                      const percentage = recipe.base_cost > 0 
-                        ? (item.line_cost / recipe.base_cost) * 100 
+                      const percentage = recipe.base_cost > 0
+                        ? (item.line_cost / recipe.base_cost) * 100
                         : 0;
                       const colors = [
                         "bg-primary",
@@ -201,7 +212,7 @@ export function RecipeDetail({ recipe, open, onClose, onEdit }: RecipeDetailProp
                             <span className="ml-2 font-medium">{percentage.toFixed(1)}%</span>
                           </div>
                           <div className="h-2 bg-muted rounded-full overflow-hidden">
-                            <div 
+                            <div
                               className={cn("h-full rounded-full transition-all", colors[index % colors.length])}
                               style={{ width: `${percentage}%` }}
                             />
@@ -214,7 +225,7 @@ export function RecipeDetail({ recipe, open, onClose, onEdit }: RecipeDetailProp
             </Card>
           )}
 
-          {/* Notes */}
+          {/* Notas adicionales */}
           {recipe.notes && (
             <div className="p-4 bg-muted/30 rounded-lg">
               <p className="text-sm font-medium mb-1">Notas</p>
@@ -222,14 +233,14 @@ export function RecipeDetail({ recipe, open, onClose, onEdit }: RecipeDetailProp
             </div>
           )}
 
-          {/* Actions */}
+          {/* Acciones principales */}
           <div className="flex gap-3 pt-2">
             <Button variant="outline" onClick={onClose} className="flex-1">
               Cerrar
             </Button>
-            <Button onClick={() => { onEdit(recipe); onClose(); }} className="flex-1">
+            <Button onClick={() => { onEdit(recipe); onClose(); }} className="flex-1 text-primary-foreground">
               <Edit className="w-4 h-4 mr-2" />
-              Editar
+              Editar Escandallo
             </Button>
           </div>
         </div>

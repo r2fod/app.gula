@@ -1,5 +1,8 @@
 import { createContext, useContext, useState, ReactNode, useCallback } from 'react';
 
+/**
+ * Estructura de un mensaje de la IA.
+ */
 export interface AIMessage {
   id: string;
   role: 'user' | 'assistant';
@@ -8,18 +11,34 @@ export interface AIMessage {
   actions?: AIAction[];
 }
 
+/**
+ * Acciones que la IA puede proponer o ejecutar.
+ */
 export interface AIAction {
-  type: 'create_beverages' | 'create_menu' | 'calculate_staff' | 'analyze_file' | 'suggest_tables';
+  type: 'create_beverages' | 'create_menu' | 'calculate_staff' | 'analyze_file' | 'suggest_tables' | 'update_prices' | 'generate_proposal';
   data: any;
   status: 'pending' | 'executing' | 'completed' | 'failed';
   needsConfirmation?: boolean;
 }
 
+/**
+ * Sugerencias proactivas de la IA basadas en el contexto del evento.
+ */
 export interface AISuggestion {
   id: string;
   message: string;
   action: AIAction;
   priority: 'low' | 'medium' | 'high';
+}
+
+/**
+ * Contexto extendido del "Cerebro de Catering".
+ */
+export interface AICateringContext {
+  recipesCount: number;
+  averageRecipeMargin: number;
+  globalIngredientCount: number;
+  topIngredientsByCost: string[];
 }
 
 interface AIContextType {
@@ -28,6 +47,7 @@ interface AIContextType {
   isProcessing: boolean;
   currentEventId: string | null;
   addMessage: (role: 'user' | 'assistant', content: string, actions?: AIAction[]) => void;
+  updateMessageContent: (index: number, content: string) => void;
   executeAction: (action: AIAction) => Promise<void>;
   dismissSuggestion: (suggestionId: string) => void;
   setCurrentEventId: (eventId: string | null) => void;
@@ -61,6 +81,16 @@ export const AIProvider = ({ children }: { children: ReactNode }) => {
     setMessages(prev => [...prev, newMessage]);
   }, []);
 
+  const updateMessageContent = useCallback((index: number, content: string) => {
+    setMessages(prev => {
+      const updated = [...prev];
+      if (updated[index]) {
+        updated[index] = { ...updated[index], content };
+      }
+      return updated;
+    });
+  }, []);
+
   const executeAction = useCallback(async (action: AIAction) => {
     // Esta función será implementada para ejecutar acciones específicas
     console.log('Executing action:', action);
@@ -83,6 +113,7 @@ export const AIProvider = ({ children }: { children: ReactNode }) => {
         isProcessing,
         currentEventId,
         addMessage,
+        updateMessageContent,
         executeAction,
         dismissSuggestion,
         setCurrentEventId,

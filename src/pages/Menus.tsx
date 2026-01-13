@@ -2,7 +2,6 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import MenuManager from "@/features/menu/components/MenuManager";
-import AIAssistant from "@/components/AIAssistant";
 
 const Menus = () => {
   const navigate = useNavigate();
@@ -24,8 +23,6 @@ const Menus = () => {
         <h1 className="text-3xl font-bold mb-8">Gestión de Menús</h1>
         <MenuManager />
       </main>
-
-      <AIAssistant />
     </div>
   );
 };

@@ -18,7 +18,7 @@ import CornersSection from "@/features/events/components/CornersSection";
 import RoomEquipmentSection from "@/features/events/components/RoomEquipmentSection";
 import StaffSection from "@/features/events/components/StaffSection";
 import RentalsSection from "@/features/events/components/RentalsSection";
-import AIAssistant from "@/components/AIAssistant";
+import { PurchaseOrderPanel } from "@/features/events/components/PurchaseOrderPanel";
 
 interface Event {
   id: string;
@@ -156,6 +156,11 @@ const EventDetail = () => {
         {/* Sección 3: Menú */}
         <MenuSection eventId={event.id} />
 
+        {/* Sección 3.5: Compras y Pedidos */}
+        <section className="space-y-4">
+          <PurchaseOrderPanel eventId={event.id} />
+        </section>
+
         {/* Sección 4: Bebidas y Barra libre */}
         <BeveragesSection eventId={event.id} totalGuests={event.total_guests} />
 
@@ -178,8 +183,6 @@ const EventDetail = () => {
         <RentalsSection eventId={event.id} />
       </main>
 
-      {/* AI Assistant */}
-      <AIAssistant eventId={event.id} />
     </div>
   );
 };

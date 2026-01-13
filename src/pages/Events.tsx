@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Calendar, MapPin, Users, Plus, LogOut, Loader2, UtensilsCrossed, Building2, ChefHat } from "lucide-react";
+import { Calendar, MapPin, Users, Plus, LogOut, Loader2, UtensilsCrossed, Building2, ChefHat, Activity } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import ProfileSettings from "@/components/ProfileSettings";
@@ -121,6 +121,12 @@ const Events = () => {
 
             <div className="flex items-center justify-between sm:justify-end gap-2 md:gap-4 w-full sm:w-auto">
               <ProfileSettings />
+              <Button variant="outline" size="sm" asChild className="hidden lg:flex">
+                <Link to="/analytics">
+                  <Activity className="w-4 h-4 mr-2" />
+                  Rendimiento
+                </Link>
+              </Button>
               <Button variant="outline" size="sm" asChild className="hidden sm:flex">
                 <Link to="/escandallos">
                   <ChefHat className="w-4 h-4 mr-2" />

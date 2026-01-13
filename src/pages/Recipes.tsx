@@ -5,17 +5,18 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
-import { 
-  Plus, 
-  Search, 
-  ChefHat, 
-  LayoutGrid, 
+import {
+  Plus,
+  Search,
+  ChefHat,
+  LayoutGrid,
   List,
   Euro,
   TrendingUp,
   Package,
   Filter,
-  ArrowLeft
+  ArrowLeft,
+  Sparkles
 } from "lucide-react";
 import { PageTransition } from "@/components/PageTransition";
 import { RecipeCard } from "@/features/recipes/components/RecipeCard";
@@ -37,13 +38,13 @@ import {
 export default function Recipes() {
   const navigate = useNavigate();
   const { isDemo } = useAuth();
-  const { 
-    recipes, 
+  const {
+    recipes,
     ingredients,
-    loadingRecipes, 
-    createRecipe, 
-    updateRecipe, 
-    deleteRecipe 
+    loadingRecipes,
+    createRecipe,
+    updateRecipe,
+    deleteRecipe
   } = useRecipes();
 
   const [search, setSearch] = useState("");
@@ -67,8 +68,8 @@ export default function Recipes() {
   const stats = useMemo(() => {
     const totalRecipes = recipes.length;
     const totalValue = recipes.reduce((sum, r) => sum + r.selling_price, 0);
-    const avgMargin = recipes.length > 0 
-      ? recipes.reduce((sum, r) => sum + r.margin_percent, 0) / recipes.length 
+    const avgMargin = recipes.length > 0
+      ? recipes.reduce((sum, r) => sum + r.margin_percent, 0) / recipes.length
       : 0;
     const activeRecipes = recipes.filter(r => r.is_active).length;
 
@@ -118,6 +119,19 @@ export default function Recipes() {
                   <Package className="w-4 h-4 mr-2" />
                   Ver Ingredientes
                 </Link>
+              </Button>
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  // Pequeña lógica para abrir el chat de IA (ya que es global, podemos usar el estado de isOpen si lo exponemos o simplemente dejar que el usuario lo abra abajo)
+                  // Pero para que sea proactivo, podemos añadir un mensaje inicial si quisiéramos.
+                  // De momento, simplemente un recordatorio visual de que la IA está disponible.
+                  const assistantButton = document.querySelector('button.fixed.bottom-6.right-6') as HTMLButtonElement;
+                  if (assistantButton) assistantButton.click();
+                }}
+              >
+                <Sparkles className="w-4 h-4 mr-2 text-primary" />
+                Cerebro Gula
               </Button>
               <Button onClick={() => { setEditingRecipe(null); setShowForm(true); }} size="lg">
                 <Plus className="w-5 h-5 mr-2" />
@@ -235,8 +249,8 @@ export default function Recipes() {
                 Todas
               </TabsTrigger>
               {RECIPE_CATEGORIES.map(cat => (
-                <TabsTrigger 
-                  key={cat.value} 
+                <TabsTrigger
+                  key={cat.value}
                   value={cat.value}
                   className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
                 >
@@ -258,7 +272,7 @@ export default function Recipes() {
               <ChefHat className="w-16 h-16 mx-auto text-muted-foreground/30 mb-4" />
               <h3 className="text-lg font-semibold mb-2">No hay recetas</h3>
               <p className="text-muted-foreground mb-4">
-                {search || categoryFilter !== "all" 
+                {search || categoryFilter !== "all"
                   ? "No se encontraron recetas con los filtros actuales"
                   : "Crea tu primer escandallo para calcular costes"
                 }

@@ -8,40 +8,80 @@ export interface AIResponse {
   needsConfirmation?: boolean;
 }
 
+/**
+ * Hook maestro para la comunicación con el "Cerebro" de Gula.
+ * Ahora centraliza todas las llamadas a la función unificada ai-chat.
+ */
 export const useAIChat = (eventId?: string) => {
-  const { addMessage, setCurrentEventId, isProcessing } = useAI();
+  const { addMessage, isProcessing } = useAI();
   const [loading, setLoading] = useState(false);
 
-  const sendMessage = useCallback(async (message: string): Promise<AIResponse | null> => {
+  /**
+   * Envía un mensaje a la IA y permite el manejo de streaming opcionalmente.
+   * Delega la construcción del contexto al backend para mayor eficiencia.
+   */
+  const sendMessage = useCallback(async (
+    message: string,
+    options: { stream?: boolean, onStreamUpdate?: (text: string) => void } = {}
+  ): Promise<AIResponse | null> => {
     if (!message.trim()) return null;
 
     setLoading(true);
     addMessage('user', message);
 
     try {
-      // Obtener contexto actual
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { session } } = await supabase.auth.getSession();
+      const user = session?.user;
 
-      let eventContext = null;
-      if (eventId) {
-        const { data: event } = await supabase
-          .from('events')
-          .select('*')
-          .eq('id', eventId)
-          .single();
-        eventContext = event;
+      // Si es streaming, realizamos una llamada fetch directa (React Query / invoke no soportan streams bien)
+      if (options.stream) {
+        const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-chat`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session?.access_token || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          },
+          body: JSON.stringify({
+            message,
+            context: { eventId, userId: user?.id, currentPage: window.location.pathname },
+            stream: true,
+          }),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.error || `Error en la conexión con la IA (${response.status})`);
+        }
+        if (!response.body) throw new Error("Cuerpo de respuesta vacío");
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let fullText = "";
+
+        // Notificamos al sistema que hay un mensaje del asistente en camino (vacío inicial)
+        addMessage('assistant', "");
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          const chunk = decoder.decode(value, { stream: true });
+          // El stream puede venir en formato server-sent events o texto plano según Lovable Gateway
+          // Simplificamos omitiendo el parseo complejo para el MVP si el gateway lo permite
+          fullText += chunk;
+
+          if (options.onStreamUpdate) options.onStreamUpdate(fullText);
+        }
+
+        return { message: fullText };
       }
 
-      // Llamar a la Edge Function de IA
+      // Si no es streaming (acciones JSON), usamos invoke normal
       const { data, error } = await supabase.functions.invoke('ai-chat', {
         body: {
           message,
-          context: {
-            eventId,
-            eventData: eventContext,
-            userId: user?.id,
-            currentPage: window.location.pathname,
-          },
+          context: { eventId, userId: user?.id, currentPage: window.location.pathname },
+          stream: false,
         },
       });
 
@@ -52,7 +92,7 @@ export const useAIChat = (eventId?: string) => {
 
       return response;
     } catch (error) {
-      console.error('Error sending message to AI:', error);
+      console.error('Error al enviar mensaje a la IA:', error);
       addMessage('assistant', 'Lo siento, hubo un error al procesar tu mensaje. Por favor, inténtalo de nuevo.');
       return null;
     } finally {
@@ -60,12 +100,14 @@ export const useAIChat = (eventId?: string) => {
     }
   }, [eventId, addMessage]);
 
+  /**
+   * Analiza un archivo usando la función especializada (manteniéndola por su complejidad específica).
+   */
   const uploadAndAnalyzeFile = useCallback(async (file: File): Promise<any> => {
     setLoading(true);
     addMessage('user', `Analizando archivo: ${file.name}`);
 
     try {
-      // Subir archivo a Supabase Storage
       const fileExt = file.name.split('.').pop();
       const fileName = `${crypto.randomUUID()}.${fileExt}`;
       const filePath = `ai-uploads/${fileName}`;
@@ -76,12 +118,10 @@ export const useAIChat = (eventId?: string) => {
 
       if (uploadError) throw uploadError;
 
-      // Obtener URL pública
       const { data: { publicUrl } } = supabase.storage
         .from('event-files')
         .getPublicUrl(filePath);
 
-      // Llamar a la Edge Function de análisis
       const { data, error } = await supabase.functions.invoke('ai-file-analyzer', {
         body: {
           fileUrl: publicUrl,
@@ -104,7 +144,7 @@ export const useAIChat = (eventId?: string) => {
 
       return data;
     } catch (error) {
-      console.error('Error analyzing file:', error);
+      console.error('Error al analizar archivo:', error);
       addMessage('assistant', 'Lo siento, hubo un error al analizar el archivo.');
       return null;
     } finally {

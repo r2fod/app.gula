@@ -6,10 +6,12 @@ import { Check, X, Edit, Save } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
+// Props que recibe el componente EventInfo
 interface EventInfoProps {
   eventId: string;
 }
 
+// Definición de las características opcionales del evento
 interface EventFeatures {
   lemonade_corner: boolean;
   beer_corner: boolean;
@@ -44,6 +46,7 @@ const EventInfo = ({ eventId }: EventInfoProps) => {
     fetchFeatures();
   }, [eventId]);
 
+  // Función para obtener las características del evento desde Supabase
   const fetchFeatures = async () => {
     const { data } = await supabase
       .from("event_features")
@@ -57,6 +60,7 @@ const EventInfo = ({ eventId }: EventInfoProps) => {
     }
   };
 
+  // Maneja la acción de guardar los cambios de características del evento
   const handleSave = async () => {
     const { data: existing } = await supabase
       .from("event_features")
@@ -84,6 +88,7 @@ const EventInfo = ({ eventId }: EventInfoProps) => {
   };
 
   // Lista de features disponibles para mostrar en la UI
+  // Lista de etiquetas descriptivas para cada característica
   const summary = [
     { key: "lemonade_corner", label: "Corner Limonada y Agua" },
     { key: "beer_corner", label: "Corner Cervezas y Vermut" },
@@ -96,6 +101,7 @@ const EventInfo = ({ eventId }: EventInfoProps) => {
     { key: "candy_bar", label: "Candy Bar" },
   ];
 
+  // Renderiza la sección de información del evento con controles de edición
   return (
     <section>
       <div className="flex items-center justify-between mb-6">
