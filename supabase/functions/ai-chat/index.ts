@@ -82,9 +82,11 @@ serve(async (req) => {
 
     REGLAS DE RESPUESTA:
     1. Si stream=false: Responde SIEMPRE en JSON válido con este formato:
-       { "message": "Texto amigable", "actions": [{ "type": "create_menu|create_beverages", "data": {...} }] }
-    2. Si stream=true: Responde de forma natural y fluida. No menciones el sistema interno.
-    3. Idioma: Español. Profesionial pero cercano.`;
+       { "message": "Texto amigable explicando qué vas a hacer", 
+         "actions": [{ "type": "update_event_field|add_recipe_item|set_menu_data", "data": {...} }] }
+    2. Si el usuario dice "pon x piezas", "cambia el pax", o "añade 2 camareros", incluye la acción correspondiente en el JSON.
+    3. Si stream=true: Responde de forma natural. Si detectas una acción necesaria, menciona que el usuario puede pedir un resumen para "aplicar los cambios".
+    4. Idioma: Español. Profesionial pero cercano.`;
 
     const chatMessages = messages || [{ role: 'user', content: message }];
 

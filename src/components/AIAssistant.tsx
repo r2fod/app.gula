@@ -7,6 +7,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Bot, Send, X, Loader2, Sparkles, MessageSquare, Paperclip } from "lucide-react";
 import { useAI } from "@/contexts/AIContext";
 import { useAIChat } from "@/hooks/useAIChat";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface AIAssistantProps {
   eventId?: string;
@@ -20,11 +22,40 @@ export default function AIAssistant({ eventId }: AIAssistantProps) {
   const { user } = useAuth();
   const { messages, updateMessageContent } = useAI();
   const { sendMessage, uploadAndAnalyzeFile, loading } = useAIChat(eventId);
+  const { toast } = useToast();
 
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  /**
+   * Ejecuta una acción propuesta por la IA directamente en la base de datos.
+   */
+  const handleExecuteAction = async (action: any) => {
+    try {
+      if (action.type === 'update_event_field' && eventId) {
+        const { error } = await supabase
+          .from('events')
+          .update(action.data)
+          .eq('id', eventId);
+
+        if (error) throw error;
+        toast({ title: "Evento actualizado", description: "Los cambios se han aplicado correctamente." });
+      } else if (action.type === 'add_recipe_item') {
+        toast({ title: "Acción en desarrollo", description: "Esta acción estará disponible pronto." });
+      }
+
+      // Refrescamos o notificamos cambio
+      setTimeout(() => window.location.reload(), 1000);
+    } catch (error: any) {
+      toast({
+        title: "Error al ejecutar acción",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  };
 
   // Scroll automático al recibir nuevos mensajes o actualizaciones de streaming
   useEffect(() => {
@@ -190,7 +221,14 @@ export default function AIAssistant({ eventId }: AIAssistantProps) {
                         {msg.actions.map((action: any, idx: number) => (
                           <div key={idx} className="p-2 bg-background/50 rounded border text-xs flex items-center justify-between">
                             <span>Acción: {action.type}</span>
-                            <Button size="sm" variant="secondary" className="h-6 text-[10px]">Ejecutar</Button>
+                            <Button
+                              size="sm"
+                              variant="secondary"
+                              className="h-6 text-[10px]"
+                              onClick={() => handleExecuteAction(action)}
+                            >
+                              Ejecutar
+                            </Button>
                           </div>
                         ))}
                       </div>
