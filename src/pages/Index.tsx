@@ -82,61 +82,6 @@ const DynamicHeroText = ({ text, mode, loopKey }: { text: string; mode: string; 
   );
 };
 
-/**
- * Componente para los objetos flotantes del fondo.
- * Optimizados con hardware acceleration (will-change).
- */
-const FloatingObjects = () => {
-  const icons = [Pizza, Wine, Truck, Package, Calendar, PartyPopper, Utensils, Camera, Music, Sparkles];
-  const colors = [
-    "text-orange-300/15", "text-red-300/15", "text-blue-300/15",
-    "text-amber-300/15", "text-primary/10", "text-pink-300/15",
-    "text-gray-400/15", "text-purple-300/15", "text-yellow-300/15", "text-emerald-300/15"
-  ];
-
-  // Creamos los objetos una sola vez para evitar re-renders innecesarios.
-  const objects = useMemo(() => {
-    return Array.from({ length: 15 }).map((_, i) => ({
-      Icon: icons[i % icons.length],
-      color: colors[i % colors.length],
-      size: 20 + Math.random() * 30,
-      duration: 25 + Math.random() * 20,
-      delay: Math.random() * 10,
-      x: `${Math.random() * 100}%`,
-      y: `${Math.random() * 100}%`,
-      driftX: (Math.random() - 0.5) * 100,
-      driftY: (Math.random() - 0.5) * 100,
-      rotateDir: Math.random() > 0.5 ? 360 : -360
-    }));
-  }, []);
-
-  return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
-      {objects.map((obj, i) => (
-        <motion.div
-          key={i}
-          className={`absolute ${obj.color}`}
-          initial={{ left: obj.x, top: obj.y, opacity: 0 }}
-          animate={{
-            x: [0, obj.driftX, 0],
-            y: [0, obj.driftY, 0],
-            rotate: [0, obj.rotateDir],
-            opacity: [0, 1, 1, 0],
-          }}
-          transition={{
-            duration: obj.duration,
-            repeat: Infinity,
-            delay: obj.delay,
-            ease: "easeInOut",
-          }}
-          style={{ willChange: "transform, opacity" }} // Aceleración por hardware
-        >
-          <obj.Icon size={obj.size} />
-        </motion.div>
-      ))}
-    </div>
-  );
-};
 
 const Index = () => {
   const { user, isDemo, setDemoMode } = useAuth();
@@ -176,9 +121,8 @@ const Index = () => {
   };
 
   return (
-    <div className="relative min-h-screen bg-gradient-to-br from-background via-section-info to-section-menu overflow-hidden">
-      {/* Objetos animados de fondo distribuidos por toda la pantalla */}
-      <FloatingObjects />
+    <div className="relative min-h-screen overflow-hidden">
+      {/* Las decoraciones globales de fondo ahora se manejan en PageDecorations.tsx */}
 
       <header className="relative container mx-auto px-4 py-6 z-10">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">

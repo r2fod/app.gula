@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -91,14 +92,29 @@ export default function Recipes() {
     }
   };
 
+  // Variantes de animación
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1, transition: { staggerChildren: 0.05 } }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, scale: 0.95, y: 10 },
+    visible: { opacity: 1, scale: 1, y: 0, transition: { duration: 0.3 } }
+  };
+
   return (
     <PageTransition>
-      <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
+      <div className="min-h-screen">
         <div className="container mx-auto px-4 py-8 max-w-7xl">
           {/* Header */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8"
+          >
             <div className="flex items-center gap-4">
-              <Button variant="ghost" size="icon" asChild>
+              <Button variant="ghost" size="icon" asChild className="hover:bg-primary/10">
                 <Link to="/events">
                   <ArrowLeft className="w-5 h-5" />
                 </Link>
@@ -113,8 +129,8 @@ export default function Recipes() {
                 </p>
               </div>
             </div>
-            <div className="flex gap-2">
-              <Button variant="outline" asChild>
+            <div className="flex flex-wrap gap-2">
+              <Button variant="outline" asChild className="hover:bg-primary/5 transition-colors">
                 <Link to="/ingredientes">
                   <Package className="w-4 h-4 mr-2" />
                   Ver Ingredientes
@@ -122,10 +138,8 @@ export default function Recipes() {
               </Button>
               <Button
                 variant="secondary"
+                className="hover:shadow-md transition-all"
                 onClick={() => {
-                  // Pequeña lógica para abrir el chat de IA (ya que es global, podemos usar el estado de isOpen si lo exponemos o simplemente dejar que el usuario lo abra abajo)
-                  // Pero para que sea proactivo, podemos añadir un mensaje inicial si quisiéramos.
-                  // De momento, simplemente un recordatorio visual de que la IA está disponible.
                   const assistantButton = document.querySelector('button.fixed.bottom-6.right-6') as HTMLButtonElement;
                   if (assistantButton) assistantButton.click();
                 }}
@@ -133,74 +147,51 @@ export default function Recipes() {
                 <Sparkles className="w-4 h-4 mr-2 text-primary" />
                 Cerebro Gula
               </Button>
-              <Button onClick={() => { setEditingRecipe(null); setShowForm(true); }} size="lg">
+              <Button onClick={() => { setEditingRecipe(null); setShowForm(true); }} size="lg" className="hover:scale-105 transition-transform shadow-lg">
                 <Plus className="w-5 h-5 mr-2" />
                 Nuevo Escandallo
               </Button>
             </div>
-          </div>
+          </motion.div>
 
           {/* Stats cards */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-            <Card className="bg-card/50 backdrop-blur border-border/50">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-primary/10 rounded-lg">
-                    <Package className="w-5 h-5 text-primary" />
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold">{stats.totalRecipes}</p>
-                    <p className="text-xs text-muted-foreground">Recetas</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-card/50 backdrop-blur border-border/50">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-green-500/10 rounded-lg">
-                    <Euro className="w-5 h-5 text-green-600" />
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold">{stats.totalValue.toFixed(0)}€</p>
-                    <p className="text-xs text-muted-foreground">Valor Total</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-card/50 backdrop-blur border-border/50">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-amber-500/10 rounded-lg">
-                    <TrendingUp className="w-5 h-5 text-amber-600" />
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold">{stats.avgMargin.toFixed(0)}%</p>
-                    <p className="text-xs text-muted-foreground">Margen Medio</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-card/50 backdrop-blur border-border/50">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-blue-500/10 rounded-lg">
-                    <ChefHat className="w-5 h-5 text-blue-600" />
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold">{stats.activeRecipes}</p>
-                    <p className="text-xs text-muted-foreground">Activas</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8"
+          >
+            {[
+              { icon: Package, value: stats.totalRecipes, label: "Recetas", color: "text-primary", bg: "bg-primary/10" },
+              { icon: Euro, value: `${stats.totalValue.toFixed(0)}€`, label: "Valor Total", color: "text-green-600", bg: "bg-green-500/10" },
+              { icon: TrendingUp, value: `${stats.avgMargin.toFixed(0)}%`, label: "Margen Medio", color: "text-amber-600", bg: "bg-amber-500/10" },
+              { icon: ChefHat, value: stats.activeRecipes, label: "Activas", color: "text-blue-600", bg: "bg-blue-500/10" }
+            ].map((stat, i) => (
+              <motion.div key={i} variants={itemVariants}>
+                <Card className="bg-card/50 backdrop-blur border-border/50 hover:border-primary/30 transition-colors">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-3">
+                      <div className={`p-2 ${stat.bg} rounded-lg`}>
+                        <stat.icon className={`w-5 h-5 ${stat.color}`} />
+                      </div>
+                      <div>
+                        <p className="text-2xl font-bold">{stat.value}</p>
+                        <p className="text-xs text-muted-foreground">{stat.label}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+          </motion.div>
 
           {/* Filters */}
-          <div className="flex flex-col sm:flex-row gap-4 mb-6">
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="flex flex-col sm:flex-row gap-4 mb-6"
+          >
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
@@ -224,11 +215,12 @@ export default function Recipes() {
               </SelectContent>
             </Select>
 
-            <div className="flex border rounded-lg p-1 bg-muted/50">
+            <div className="flex border rounded-lg p-1 bg-muted/50 border-border/50">
               <Button
                 variant={viewMode === "grid" ? "default" : "ghost"}
                 size="sm"
                 onClick={() => setViewMode("grid")}
+                className="hover:bg-primary/10 transition-colors"
               >
                 <LayoutGrid className="w-4 h-4" />
               </Button>
@@ -236,29 +228,36 @@ export default function Recipes() {
                 variant={viewMode === "list" ? "default" : "ghost"}
                 size="sm"
                 onClick={() => setViewMode("list")}
+                className="hover:bg-primary/10 transition-colors"
               >
                 <List className="w-4 h-4" />
               </Button>
             </div>
-          </div>
+          </motion.div>
 
           {/* Category tabs */}
-          <Tabs value={categoryFilter} onValueChange={setCategoryFilter} className="mb-6">
-            <TabsList className="flex-wrap h-auto gap-1 bg-muted/50 p-1">
-              <TabsTrigger value="all" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                Todas
-              </TabsTrigger>
-              {RECIPE_CATEGORIES.map(cat => (
-                <TabsTrigger
-                  key={cat.value}
-                  value={cat.value}
-                  className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
-                >
-                  {cat.label}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.4 }}
+          >
+            <Tabs value={categoryFilter} onValueChange={setCategoryFilter} className="mb-6">
+              <TabsList className="flex-wrap h-auto gap-1 bg-muted/50 p-1 border-border/20">
+                <TabsTrigger value="all" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all">
+                  Todas
                 </TabsTrigger>
-              ))}
-            </TabsList>
-          </Tabs>
+                {RECIPE_CATEGORIES.map(cat => (
+                  <TabsTrigger
+                    key={cat.value}
+                    value={cat.value}
+                    className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all"
+                  >
+                    {cat.label}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </Tabs>
+          </motion.div>
 
           {/* Recipes grid/list */}
           {loadingRecipes ? (
@@ -268,36 +267,47 @@ export default function Recipes() {
               ))}
             </div>
           ) : filteredRecipes.length === 0 ? (
-            <Card className="p-12 text-center bg-muted/30">
-              <ChefHat className="w-16 h-16 mx-auto text-muted-foreground/30 mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No hay recetas</h3>
-              <p className="text-muted-foreground mb-4">
-                {search || categoryFilter !== "all"
-                  ? "No se encontraron recetas con los filtros actuales"
-                  : "Crea tu primer escandallo para calcular costes"
-                }
-              </p>
-              <Button onClick={() => setShowForm(true)}>
-                <Plus className="w-4 h-4 mr-2" />
-                Crear Escandallo
-              </Button>
-            </Card>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+            >
+              <Card className="p-12 text-center bg-muted/30 border-dashed border-2">
+                <ChefHat className="w-16 h-16 mx-auto text-muted-foreground/30 mb-4" />
+                <h3 className="text-lg font-semibold mb-2">No hay recetas</h3>
+                <p className="text-muted-foreground mb-4">
+                  {search || categoryFilter !== "all"
+                    ? "No se encontraron recetas con los filtros actuales"
+                    : "Crea tu primer escandallo para calcular costes"
+                  }
+                </p>
+                <Button onClick={() => setShowForm(true)} className="hover:scale-105 transition-transform">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Crear Escandallo
+                </Button>
+              </Card>
+            </motion.div>
           ) : (
-            <div className={
-              viewMode === "grid"
-                ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
-                : "flex flex-col gap-4"
-            }>
+            <motion.div
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+              className={
+                viewMode === "grid"
+                  ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+                  : "flex flex-col gap-4"
+              }
+            >
               {filteredRecipes.map(recipe => (
-                <RecipeCard
-                  key={recipe.id}
-                  recipe={recipe}
-                  onView={setSelectedRecipe}
-                  onEdit={(r) => { setEditingRecipe(r); setShowForm(true); }}
-                  onDelete={setDeleteId}
-                />
+                <motion.div key={recipe.id} variants={itemVariants}>
+                  <RecipeCard
+                    recipe={recipe}
+                    onView={setSelectedRecipe}
+                    onEdit={(r) => { setEditingRecipe(r); setShowForm(true); }}
+                    onDelete={setDeleteId}
+                  />
+                </motion.div>
               ))}
-            </div>
+            </motion.div>
           )}
         </div>
 

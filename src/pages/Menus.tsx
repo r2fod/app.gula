@@ -7,7 +7,7 @@ const Menus = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen">
       <div className="mb-6">
         <Button
           variant="ghost"

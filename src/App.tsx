@@ -8,6 +8,7 @@ import { AIProvider } from "@/contexts/AIContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import ErrorBoundary from "@/components/common/ErrorBoundary";
 import { PageDecorations } from "@/components/PageDecorations";
+import { PageTransition } from "@/components/PageTransition";
 import AIAssistant from "@/components/AIAssistant";
 import { lazy, Suspense } from "react";
 import { LoadingSpinner } from "@/components/common/LoadingSpinner";
@@ -41,92 +42,104 @@ const App = () => (
             <ErrorBoundary>
               <PageDecorations />
               <Suspense fallback={<LoadingSpinner />}>
-                <Routes>
-                  <Route path="/" element={<Index />} />
-                  <Route path="/auth" element={<Auth />} />
-                  <Route
-                    path="/events"
-                    element={
-                      <ProtectedRoute>
-                        <ErrorBoundary>
-                          <Events />
-                        </ErrorBoundary>
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/events/create"
-                    element={
-                      <ProtectedRoute>
-                        <ErrorBoundary>
-                          <CreateEvent />
-                        </ErrorBoundary>
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/events/:id"
-                    element={
-                      <ProtectedRoute>
-                        <ErrorBoundary>
-                          <EventDetail />
-                        </ErrorBoundary>
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/events/:id/edit"
-                    element={
-                      <ProtectedRoute>
-                        <ErrorBoundary>
-                          <CreateEvent />
-                        </ErrorBoundary>
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/menus"
-                    element={
-                      <ProtectedRoute>
-                        <ErrorBoundary>
-                          <Menus />
-                        </ErrorBoundary>
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/escandallos"
-                    element={
-                      <ProtectedRoute>
-                        <ErrorBoundary>
-                          <Recipes />
-                        </ErrorBoundary>
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/ingredientes"
-                    element={
-                      <ProtectedRoute>
-                        <ErrorBoundary>
-                          <Ingredients />
-                        </ErrorBoundary>
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/analytics"
-                    element={
-                      <ProtectedRoute>
-                        <ErrorBoundary>
-                          <Analytics />
-                        </ErrorBoundary>
-                      </ProtectedRoute>
-                    }
-                  />
-                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
+                <PageTransition>
+                  <Routes>
+                    <Route path="/" element={<Index />} />
+                    <Route path="/auth" element={<Auth />} />
+                    <Route
+                      path="/events"
+                      element={
+                        <ProtectedRoute>
+                          <ErrorBoundary>
+                            <Events />
+                          </ErrorBoundary>
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/events/create"
+                      element={
+                        <ProtectedRoute>
+                          <ErrorBoundary>
+                            <CreateEvent />
+                          </ErrorBoundary>
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/events/:id"
+                      element={
+                        <ProtectedRoute>
+                          <ErrorBoundary>
+                            <EventDetail />
+                          </ErrorBoundary>
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/events/:id/edit"
+                      element={
+                        <ProtectedRoute>
+                          <ErrorBoundary>
+                            <CreateEvent />
+                          </ErrorBoundary>
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/events/:id/edit"
+                      element={
+                        <ProtectedRoute>
+                          <ErrorBoundary>
+                            <CreateEvent />
+                          </ErrorBoundary>
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/menus"
+                      element={
+                        <ProtectedRoute>
+                          <ErrorBoundary>
+                            <Menus />
+                          </ErrorBoundary>
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/escandallos"
+                      element={
+                        <ProtectedRoute>
+                          <ErrorBoundary>
+                            <Recipes />
+                          </ErrorBoundary>
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/ingredientes"
+                      element={
+                        <ProtectedRoute>
+                          <ErrorBoundary>
+                            <Ingredients />
+                          </ErrorBoundary>
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/analytics"
+                      element={
+                        <ProtectedRoute>
+                          <ErrorBoundary>
+                            <Analytics />
+                          </ErrorBoundary>
+                        </ProtectedRoute>
+                      }
+                    />
+                    {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </PageTransition>
               </Suspense>
               <AIAssistant />
             </ErrorBoundary>

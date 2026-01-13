@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -177,14 +178,30 @@ export default function Ingredients() {
     setDeleteId(null);
   };
 
+  // Variantes de animación
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1, transition: { staggerChildren: 0.05 } }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 10 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.3 } }
+  };
+
   return (
     <PageTransition>
-      <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
-        <div className="container mx-auto px-4 py-8 max-w-7xl">
+      <div className="min-h-screen">
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+          className="container mx-auto px-4 py-8 max-w-7xl"
+        >
           {/* Header */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+          <motion.div variants={itemVariants} className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
             <div className="flex items-center gap-4">
-              <Button variant="ghost" size="icon" asChild>
+              <Button variant="ghost" size="icon" asChild className="hover:bg-primary/10 transition-colors">
                 <Link to="/escandallos">
                   <ArrowLeft className="w-5 h-5" />
                 </Link>
@@ -199,147 +216,132 @@ export default function Ingredients() {
                 </p>
               </div>
             </div>
-            <Button onClick={() => handleOpenForm()} size="lg">
+            <Button onClick={() => handleOpenForm()} size="lg" className="hover:scale-105 transition-transform shadow-lg">
               <Plus className="w-5 h-5 mr-2" />
               Nuevo Ingrediente
             </Button>
-          </div>
+          </motion.div>
 
           {/* Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-            <Card className="bg-card/50 backdrop-blur border-border/50">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-primary/10 rounded-lg">
-                    <Package className="w-5 h-5 text-primary" />
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold">{stats.totalItems}</p>
-                    <p className="text-xs text-muted-foreground">Ingredientes</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-card/50 backdrop-blur border-border/50">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-green-500/10 rounded-lg">
-                    <Euro className="w-5 h-5 text-green-600" />
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold">{stats.totalValue.toFixed(0)}€</p>
-                    <p className="text-xs text-muted-foreground">Valor Total Stock</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-card/50 backdrop-blur border-border/50">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-amber-500/10 rounded-lg">
-                    <Euro className="w-5 h-5 text-amber-600" />
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold">{stats.avgUnitCost.toFixed(2)}€</p>
-                    <p className="text-xs text-muted-foreground">Coste Medio/Unidad</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+          <motion.div variants={containerVariants} className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+            {[
+              { icon: Package, value: stats.totalItems, label: "Ingredientes", color: "text-primary", bg: "bg-primary/10" },
+              { icon: Euro, value: `${stats.totalValue.toFixed(0)}€`, label: "Valor Total Stock", color: "text-green-600", bg: "bg-green-500/10" },
+              { icon: Euro, value: `${stats.avgUnitCost.toFixed(2)}€`, label: "Coste Medio/Unidad", color: "text-amber-600", bg: "bg-amber-500/10" }
+            ].map((stat, i) => (
+              <motion.div key={i} variants={itemVariants}>
+                <Card className="bg-card/50 backdrop-blur border-border/50 hover:border-primary/30 transition-colors">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-3">
+                      <div className={`p-2 ${stat.bg} rounded-lg`}>
+                        <stat.icon className={`w-5 h-5 ${stat.color}`} />
+                      </div>
+                      <div>
+                        <p className="text-2xl font-bold">{stat.value}</p>
+                        <p className="text-xs text-muted-foreground">{stat.label}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+          </motion.div>
 
           {/* Search */}
-          <div className="flex gap-4 mb-6">
+          <motion.div variants={itemVariants} className="flex gap-4 mb-6">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
                 placeholder="Buscar ingredientes por nombre o código..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="pl-10"
+                className="pl-10 focus:ring-primary/50"
               />
             </div>
-          </div>
+          </motion.div>
 
           {/* Table */}
-          <Card>
-            <CardContent className="p-0">
-              {loadingIngredients ? (
-                <div className="p-8 text-center text-muted-foreground">Cargando...</div>
-              ) : filteredIngredients.length === 0 ? (
-                <div className="p-12 text-center">
-                  <Package className="w-16 h-16 mx-auto text-muted-foreground/30 mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">No hay ingredientes</h3>
-                  <p className="text-muted-foreground mb-4">
-                    {search ? "No se encontraron ingredientes con ese nombre" : "Añade tu primer ingrediente al catálogo"}
-                  </p>
-                  <Button onClick={() => handleOpenForm()}>
-                    <Plus className="w-4 h-4 mr-2" />
-                    Añadir Ingrediente
-                  </Button>
-                </div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow className="bg-muted/50">
-                        <TableHead className="w-20">Código</TableHead>
-                        <TableHead>Nombre</TableHead>
-                        <TableHead className="text-right">Cantidad</TableHead>
-                        <TableHead>Unidad</TableHead>
-                        <TableHead className="text-right">Coste Envase</TableHead>
-                        <TableHead className="text-right">Coste/Unidad</TableHead>
-                        <TableHead className="w-24">Acciones</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {filteredIngredients.map((ing) => (
-                        <TableRow key={ing.id} className="hover:bg-muted/30">
-                          <TableCell>
-                            <Badge variant="outline" className="font-mono">
-                              {ing.code || "-"}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="font-medium">{ing.name}</TableCell>
-                          <TableCell className="text-right">{ing.package_quantity}</TableCell>
-                          <TableCell>
-                            <Badge variant="secondary">{ing.unit}</Badge>
-                          </TableCell>
-                          <TableCell className="text-right">{ing.package_cost.toFixed(2)}€</TableCell>
-                          <TableCell className="text-right font-semibold text-primary">
-                            {ing.unit_cost.toFixed(2)}€
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex gap-1">
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8"
-                                onClick={() => handleOpenForm(ing)}
-                              >
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8 text-destructive"
-                                onClick={() => setDeleteId(ing.id!)}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </TableCell>
+          <motion.div variants={itemVariants}>
+            <Card className="overflow-hidden border-border/50 shadow-soft">
+              <CardContent className="p-0">
+                {loadingIngredients ? (
+                  <div className="p-12 flex flex-col items-center justify-center gap-4 text-muted-foreground">
+                    <Package className="w-10 h-10 animate-bounce text-primary/30" />
+                    <p className="animate-pulse">Cargando productos...</p>
+                  </div>
+                ) : filteredIngredients.length === 0 ? (
+                  <div className="p-12 text-center">
+                    <Package className="w-16 h-16 mx-auto text-muted-foreground/30 mb-4" />
+                    <h3 className="text-lg font-semibold mb-2">No hay ingredientes</h3>
+                    <p className="text-muted-foreground mb-4">
+                      {search ? "No se encontraron ingredientes con ese nombre" : "Añade tu primer ingrediente al catálogo"}
+                    </p>
+                    <Button onClick={() => handleOpenForm()} className="hover:scale-105 transition-transform">
+                      <Plus className="w-4 h-4 mr-2" />
+                      Añadir Ingrediente
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="bg-muted/50 hover:bg-muted/50">
+                          <TableHead className="w-20">Código</TableHead>
+                          <TableHead>Nombre</TableHead>
+                          <TableHead className="text-right">Cantidad</TableHead>
+                          <TableHead>Unidad</TableHead>
+                          <TableHead className="text-right">Coste Envase</TableHead>
+                          <TableHead className="text-right">Coste/Unidad</TableHead>
+                          <TableHead className="w-24">Acciones</TableHead>
                         </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
+                      </TableHeader>
+                      <TableBody>
+                        {filteredIngredients.map((ing) => (
+                          <TableRow key={ing.id} className="hover:bg-primary/5 transition-colors group">
+                            <TableCell>
+                              <Badge variant="outline" className="font-mono group-hover:border-primary/50 transition-colors">
+                                {ing.code || "-"}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="font-medium group-hover:text-primary transition-colors">{ing.name}</TableCell>
+                            <TableCell className="text-right">{ing.package_quantity}</TableCell>
+                            <TableCell>
+                              <Badge variant="secondary" className="group-hover:bg-primary/10 transition-colors">{ing.unit}</Badge>
+                            </TableCell>
+                            <TableCell className="text-right">{ing.package_cost.toFixed(2)}€</TableCell>
+                            <TableCell className="text-right font-bold text-primary">
+                              {ing.unit_cost.toFixed(2)}€
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex gap-1">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8 hover:bg-primary/10 hover:text-primary transition-colors"
+                                  onClick={() => handleOpenForm(ing)}
+                                >
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8 text-destructive hover:bg-destructive/10 transition-colors"
+                                  onClick={() => setDeleteId(ing.id!)}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </motion.div>
+        </motion.div>
 
         {/* Form Dialog */}
         <Dialog open={showForm} onOpenChange={setShowForm}>
