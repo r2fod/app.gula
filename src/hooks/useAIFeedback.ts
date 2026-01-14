@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
 interface FeedbackData {
@@ -18,7 +18,7 @@ export function useAIFeedback() {
     setSubmitting(true);
     try {
       const { error } = await supabase
-        .from('ai_interactions')
+        .from('ai_interactions' as any)
         .update({
           rating: data.rating,
           was_helpful: data.wasHelpful,
@@ -50,37 +50,51 @@ export function useAIFeedback() {
     }
   }, [toast]);
 
+  const extractPattern = (aiResponse: string): string | null => {
+    try {
+      // Intentar extraer JSON del response
+      const jsonMatch = aiResponse.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        return jsonMatch[0];
+      }
+      return null;
+    } catch {
+      return null;
+    }
+  };
+
   const learnFromSuccess = async (interactionId: string) => {
     try {
-      const { data: interaction } = await supabase
-        .from('ai_interactions')
-        .select('user_message, ai_response, context_data, event_id')
+      // Obtener la interacción exitosa
+      const { data: interaction, error } = await supabase
+        .from('ai_interactions' as any)
+        .select('*')
         .eq('id', interactionId)
         .single();
 
-      if (!interaction) return;
+      if (error || !interaction) return;
 
-      const aiResponse = JSON.parse(interaction.ai_response);
-      
-      // Extraer patrones de la respuesta exitosa
-      if (aiResponse.actions && aiResponse.actions.length > 0) {
-        const actionTypes = aiResponse.actions.map((a: any) => a.type);
-        const knowledgeData = {
-          summary: `Acciones exitosas: ${actionTypes.join(', ')}`,
-          actions: aiResponse.actions,
-          context: interaction.context_data,
-        };
+      const aiResponse = (interaction as any).ai_response;
 
-        await supabase.from('ai_knowledge').insert({
-          user_id: interaction.context_data?.userId,
-          knowledge_type: 'successful_action_pattern',
-          knowledge_data: knowledgeData,
-          confidence_score: 0.7,
-          source_interaction_id: interactionId,
-        });
+      // Extraer el patrón exitoso
+      const pattern = extractPattern(aiResponse);
+
+      if (pattern) {
+        const contextData = (interaction as any).context_data || {};
+        // Guardar en ai_knowledge
+        await supabase
+          .from('ai_knowledge' as any)
+          .insert({
+            user_id: (interaction as any).user_id,
+            knowledge_type: contextData.event_type || 'general',
+            pattern: pattern,
+            confidence_score: 0.8,
+            times_applied: 1,
+            success_rate: 1.0,
+          });
       }
     } catch (error) {
-      console.error('Error al aprender del éxito:', error);
+      console.error('Error al aprender del patrón:', error);
     }
   };
 
