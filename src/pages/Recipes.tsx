@@ -25,6 +25,8 @@ import { RecipeDetail } from "@/features/recipes/components/RecipeDetail";
 import { RecipeForm } from "@/features/recipes/components/RecipeForm";
 import { useRecipes, Recipe, RECIPE_CATEGORIES } from "@/features/recipes/hooks/useRecipes";
 import { useAuth } from "@/contexts/AuthContext";
+import { RoleGuard, RoleBadge } from "@/components/RoleGuard";
+import { useRole } from "@/contexts/RoleContext";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -39,6 +41,7 @@ import {
 export default function Recipes() {
   const navigate = useNavigate();
   const { isDemo } = useAuth();
+  const { hasPermission, role } = useRole();
   const {
     recipes,
     ingredients,
@@ -123,6 +126,7 @@ export default function Recipes() {
                 <h1 className="text-3xl font-bold text-foreground flex items-center gap-3">
                   <ChefHat className="w-8 h-8 text-primary" />
                   Escandallos
+                  <RoleBadge />
                 </h1>
                 <p className="text-muted-foreground mt-1">
                   Gestiona las recetas y costes de tus platos
@@ -130,7 +134,7 @@ export default function Recipes() {
               </div>
             </div>
             <div className="flex flex-wrap gap-2">
-              <Button variant="outline" asChild className="hover:bg-primary/5 transition-colors">
+              <Button variant="outline" asChild className="hover:bg-primary/15 transition-colors">
                 <Link to="/ingredientes">
                   <Package className="w-4 h-4 mr-2" />
                   Ver Ingredientes
@@ -147,10 +151,12 @@ export default function Recipes() {
                 <Sparkles className="w-4 h-4 mr-2 text-primary" />
                 Cerebro Gula
               </Button>
-              <Button onClick={() => { setEditingRecipe(null); setShowForm(true); }} size="lg" className="hover:scale-105 transition-transform shadow-lg">
-                <Plus className="w-5 h-5 mr-2" />
-                Nuevo Escandallo
-              </Button>
+              <RoleGuard resource="recipes" action="create">
+                <Button onClick={() => { setEditingRecipe(null); setShowForm(true); }} size="lg" className="hover:scale-105 transition-transform shadow-lg">
+                  <Plus className="w-5 h-5 mr-2" />
+                  Nuevo Escandallo
+                </Button>
+              </RoleGuard>
             </div>
           </motion.div>
 

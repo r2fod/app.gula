@@ -4,11 +4,14 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { RoleProvider } from "@/contexts/RoleContext";
 import { AIProvider } from "@/contexts/AIContext";
+import { DemoProvider } from "@/contexts/DemoContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import ErrorBoundary from "@/components/common/ErrorBoundary";
 import { PageDecorations } from "@/components/PageDecorations";
 import { PageTransition } from "@/components/PageTransition";
+import { DemoBanner } from "@/components/DemoBanner";
 import AIAssistant from "@/components/AIAssistant";
 import { lazy, Suspense } from "react";
 import { LoadingSpinner } from "@/components/common/LoadingSpinner";
@@ -34,16 +37,19 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
-      <AIProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <ErrorBoundary>
-              <PageDecorations />
-              <Suspense fallback={<LoadingSpinner />}>
-                <PageTransition>
-                  <Routes>
+      <RoleProvider>
+        <DemoProvider>
+          <AIProvider>
+            <TooltipProvider>
+              <Toaster />
+              <Sonner />
+              <BrowserRouter>
+                <ErrorBoundary>
+                  <PageDecorations />
+                  <DemoBanner />
+                  <Suspense fallback={<LoadingSpinner />}>
+                    <PageTransition>
+                      <Routes>
                     <Route path="/" element={<Index />} />
                     <Route path="/auth" element={<Auth />} />
                     <Route
@@ -138,14 +144,16 @@ const App = () => (
                     />
                     {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                     <Route path="*" element={<NotFound />} />
-                  </Routes>
-                </PageTransition>
-              </Suspense>
-              <AIAssistant />
-            </ErrorBoundary>
-          </BrowserRouter>
-        </TooltipProvider>
-      </AIProvider>
+                      </Routes>
+                    </PageTransition>
+                  </Suspense>
+                  <AIAssistant />
+                </ErrorBoundary>
+              </BrowserRouter>
+            </TooltipProvider>
+          </AIProvider>
+        </DemoProvider>
+      </RoleProvider>
     </AuthProvider>
   </QueryClientProvider>
 );

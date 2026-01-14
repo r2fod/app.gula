@@ -12,4 +12,4 @@ export interface Beverage {
   created_at?: string;
   item?: string;
   estimatedCost?: number;
-}
+} 

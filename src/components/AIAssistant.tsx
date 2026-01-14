@@ -5,9 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Bot, Send, X, Loader2, Sparkles, MessageSquare, Paperclip } from "lucide-react";
+import { Bot, Send, X, Loader2, Sparkles, MessageSquare, Paperclip, ThumbsUp, ThumbsDown } from "lucide-react";
 import { useAI } from "@/contexts/AIContext";
 import { useAIChat } from "@/hooks/useAIChat";
+import { useAIFeedback } from "@/hooks/useAIFeedback";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -23,10 +24,12 @@ export default function AIAssistant({ eventId }: AIAssistantProps) {
   const { user } = useAuth();
   const { messages, updateMessageContent } = useAI();
   const { sendMessage, uploadAndAnalyzeFile, loading } = useAIChat(eventId);
+  const { submitFeedback, submitting } = useAIFeedback();
   const { toast } = useToast();
 
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState("");
+  const [feedbackGiven, setFeedbackGiven] = useState<Set<string>>(new Set());
   const fileInputRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -35,24 +38,120 @@ export default function AIAssistant({ eventId }: AIAssistantProps) {
    */
   const handleExecuteAction = async (action: any) => {
     try {
-      if (action.type === 'update_event_field' && eventId) {
-        const { error } = await supabase
-          .from('events')
-          .update(action.data)
-          .eq('id', eventId);
+      switch (action.type) {
+        case 'update_event_field':
+          if (!eventId) {
+            toast({ title: "Error", description: "No hay evento activo", variant: "destructive" });
+            return;
+          }
+          const { error: updateError } = await supabase
+            .from('events')
+            .update(action.data)
+            .eq('id', eventId);
 
-        if (error) throw error;
-        toast({ title: "Evento actualizado", description: "Los cambios se han aplicado correctamente." });
-      } else if (action.type === 'add_recipe_item') {
-        toast({ title: "Acción en desarrollo", description: "Esta acción estará disponible pronto." });
+          if (updateError) throw updateError;
+          toast({
+            title: "✅ Evento actualizado",
+            description: action.description || "Los cambios se han aplicado correctamente."
+          });
+          break;
+
+        case 'update_guests':
+          if (!eventId) {
+            toast({ title: "Error", description: "No hay evento activo", variant: "destructive" });
+            return;
+          }
+          const { error: guestsError } = await supabase
+            .from('events')
+            .update({
+              total_guests: action.data.total_guests,
+              adults: action.data.adults,
+              children: action.data.children
+            })
+            .eq('id', eventId);
+
+          if (guestsError) throw guestsError;
+          toast({
+            title: "✅ Invitados actualizados",
+            description: `Total: ${action.data.total_guests} personas`
+          });
+          break;
+
+        case 'add_beverage':
+          if (!eventId) {
+            toast({ title: "Error", description: "No hay evento activo", variant: "destructive" });
+            return;
+          }
+          const { error: bevError } = await supabase
+            .from('beverages')
+            .insert({
+              event_id: eventId,
+              user_id: user?.id,
+              ...action.data
+            });
+
+          if (bevError) throw bevError;
+          toast({
+            title: "✅ Bebida añadida",
+            description: action.description || `${action.data.item} agregado al evento`
+          });
+          break;
+
+        case 'add_menu_item':
+          if (!eventId) {
+            toast({ title: "Error", description: "No hay evento activo", variant: "destructive" });
+            return;
+          }
+          const { error: menuError } = await supabase
+            .from('menu_items')
+            .insert({
+              event_id: eventId,
+              user_id: user?.id,
+              ...action.data
+            });
+
+          if (menuError) throw menuError;
+          toast({
+            title: "✅ Plato añadido al menú",
+            description: action.description || `${action.data.name} agregado`
+          });
+          break;
+
+        case 'add_staff':
+          if (!eventId) {
+            toast({ title: "Error", description: "No hay evento activo", variant: "destructive" });
+            return;
+          }
+          const { error: staffError } = await supabase
+            .from('event_staff')
+            .insert({
+              event_id: eventId,
+              user_id: user?.id,
+              ...action.data
+            });
+
+          if (staffError) throw staffError;
+          toast({
+            title: "✅ Personal añadido",
+            description: action.description || `${action.data.role} agregado al equipo`
+          });
+          break;
+
+        default:
+          toast({
+            title: "Acción no soportada",
+            description: `El tipo de acción "${action.type}" aún no está implementado.`,
+            variant: "destructive"
+          });
+          return;
       }
 
-      // Refrescamos o notificamos cambio
-      setTimeout(() => window.location.reload(), 1000);
+      // Refrescamos después de 1.5 segundos para que el usuario vea el toast
+      setTimeout(() => window.location.reload(), 1500);
     } catch (error: any) {
       toast({
-        title: "Error al ejecutar acción",
-        description: error.message,
+        title: "❌ Error al ejecutar acción",
+        description: error.message || "Ocurrió un error inesperado",
         variant: "destructive"
       });
     }
@@ -219,7 +318,7 @@ export default function AIAssistant({ eventId }: AIAssistantProps) {
                             key={i}
                             variant="outline"
                             size="sm"
-                            className="w-full text-left justify-start h-auto py-2 text-xs hover:border-primary/50 hover:bg-primary/5 transition-all"
+                            className="w-full text-left justify-start h-auto py-2 text-xs hover:border-primary/50 hover:bg-primary/15 transition-all"
                             onClick={() => setInput(suggestion)}
                           >
                             <MessageSquare className="h-3 w-3 mr-2 shrink-0" />
@@ -235,7 +334,7 @@ export default function AIAssistant({ eventId }: AIAssistantProps) {
                           key={msg.id || i}
                           initial={{ opacity: 0, x: msg.role === "user" ? 20 : -20 }}
                           animate={{ opacity: 1, x: 0 }}
-                          className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+                          className={`flex flex-col ${msg.role === "user" ? "items-end" : "items-start"}`}
                         >
                           <div
                             className={`max-w-[85%] rounded-lg px-3 py-2 text-sm ${msg.role === "user"
@@ -262,6 +361,43 @@ export default function AIAssistant({ eventId }: AIAssistantProps) {
                               </div>
                             )}
                           </div>
+
+                          {msg.role === "assistant" && msg.id && !feedbackGiven.has(msg.id) && (
+                            <div className="flex gap-1 mt-1">
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                className="h-6 w-6 hover:bg-green-100 hover:text-green-600 transition-colors"
+                                onClick={async () => {
+                                  await submitFeedback({
+                                    interactionId: msg.id!,
+                                    wasHelpful: true,
+                                    rating: 5,
+                                  });
+                                  setFeedbackGiven(prev => new Set(prev).add(msg.id!));
+                                }}
+                                disabled={submitting}
+                              >
+                                <ThumbsUp className="h-3 w-3" />
+                              </Button>
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                className="h-6 w-6 hover:bg-red-100 hover:text-red-600 transition-colors"
+                                onClick={async () => {
+                                  await submitFeedback({
+                                    interactionId: msg.id!,
+                                    wasHelpful: false,
+                                    rating: 1,
+                                  });
+                                  setFeedbackGiven(prev => new Set(prev).add(msg.id!));
+                                }}
+                                disabled={submitting}
+                              >
+                                <ThumbsDown className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          )}
                         </motion.div>
                       ))}
                       {loading && messages[messages.length - 1]?.content === "" && (
@@ -296,7 +432,7 @@ export default function AIAssistant({ eventId }: AIAssistantProps) {
                       variant="outline"
                       onClick={() => fileInputRef.current?.click()}
                       disabled={loading}
-                      className="shrink-0 hover:bg-primary/5"
+                      className="shrink-0 hover:bg-primary/15"
                     >
                       <Paperclip className="h-4 w-4" />
                     </Button>

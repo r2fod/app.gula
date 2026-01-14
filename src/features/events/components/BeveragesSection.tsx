@@ -217,7 +217,7 @@ export default function BeveragesSection({
                     return (
                       <TableRow
                         key={idx}
-                        className="hover:bg-primary/5 transition-all duration-200 group border-b border-border/50 last:border-0"
+                        className="hover:bg-primary/15 transition-all duration-200 group border-b border-border/50 last:border-0"
                       >
                         {/* Foto */}
                         <TableCell className="p-2 align-middle">
@@ -422,7 +422,7 @@ export default function BeveragesSection({
             size="sm"
             onClick={() => addItem(category)}
             disabled={isDemo}
-            className="w-full border-dashed hover:border-primary hover:text-primary transition-all"
+            className="w-full border-dashed hover:border-primary hover:text-primary hover:bg-primary/15 transition-all"
           >
             <Plus className="h-4 w-4 mr-2" /> Añadir Nueva Bebida a{" "}
             {CATEGORIES.find((c) => c.key === category)?.label}
@@ -545,7 +545,7 @@ export default function BeveragesSection({
                   onClick={() => setIsEditing(true)}
                   disabled={isDemo}
                   title={isDemo ? "No disponible en modo demo" : ""}
-                  className="border-primary/20 hover:bg-primary/5"
+                  className="border-primary/20 hover:bg-primary/15"
                 >
                   <Edit2 className="h-4 w-4 mr-2" /> Editar Bebidas
                 </Button>

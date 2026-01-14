@@ -104,7 +104,7 @@ export default function Analytics() {
             </div>
             <Button
               variant="outline"
-              className="gap-2 w-full md:w-auto hover:bg-primary/5 border-primary/20"
+              className="gap-2 w-full md:w-auto hover:bg-primary/15 border-primary/20"
               onClick={() => {
                 const assistantButton = document.querySelector('button.fixed.bottom-6.right-6') as HTMLButtonElement;
                 if (assistantButton) assistantButton.click();

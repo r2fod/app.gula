@@ -207,9 +207,9 @@ const Events = () => {
               {events.map((event) => (
                 <motion.div key={event.id} variants={itemVariants}>
                   <Link to={`/events/${event.id}`}>
-                    <Card className="p-6 hover:shadow-medium transition-all cursor-pointer h-full flex flex-col hover:border-primary/50 group">
+                    <Card className="p-6 hover:shadow-medium transition-all cursor-pointer h-full flex flex-col hover:border-primary/50 hover:bg-primary/5 group">
                       <div className="flex items-start justify-between mb-4">
-                        <Badge variant="secondary" className="group-hover:bg-primary/10 group-hover:text-primary transition-colors">
+                        <Badge variant="secondary" className="group-hover:bg-primary/20 group-hover:text-primary transition-colors">
                           {eventTypeLabels[event.event_type] || event.event_type}
                         </Badge>
                         <Calendar className="w-5 h-5 text-primary opacity-50 group-hover:opacity-100 transition-opacity" />

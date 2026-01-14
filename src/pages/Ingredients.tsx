@@ -297,16 +297,16 @@ export default function Ingredients() {
                       </TableHeader>
                       <TableBody>
                         {filteredIngredients.map((ing) => (
-                          <TableRow key={ing.id} className="hover:bg-primary/5 transition-colors group">
+                          <TableRow key={ing.id} className="hover:bg-primary/15 transition-colors group">
                             <TableCell>
-                              <Badge variant="outline" className="font-mono group-hover:border-primary/50 transition-colors">
+                              <Badge variant="outline" className="font-mono group-hover:border-primary/60 transition-colors">
                                 {ing.code || "-"}
                               </Badge>
                             </TableCell>
                             <TableCell className="font-medium group-hover:text-primary transition-colors">{ing.name}</TableCell>
                             <TableCell className="text-right">{ing.package_quantity}</TableCell>
                             <TableCell>
-                              <Badge variant="secondary" className="group-hover:bg-primary/10 transition-colors">{ing.unit}</Badge>
+                              <Badge variant="secondary" className="group-hover:bg-primary/20 transition-colors">{ing.unit}</Badge>
                             </TableCell>
                             <TableCell className="text-right">{ing.package_cost.toFixed(2)}€</TableCell>
                             <TableCell className="text-right font-bold text-primary">
@@ -317,7 +317,7 @@ export default function Ingredients() {
                                 <Button
                                   variant="ghost"
                                   size="icon"
-                                  className="h-8 w-8 hover:bg-primary/10 hover:text-primary transition-colors"
+                                  className="h-8 w-8 hover:bg-primary/20 hover:text-primary transition-colors"
                                   onClick={() => handleOpenForm(ing)}
                                 >
                                   <Edit className="h-4 w-4" />
@@ -325,7 +325,7 @@ export default function Ingredients() {
                                 <Button
                                   variant="ghost"
                                   size="icon"
-                                  className="h-8 w-8 text-destructive hover:bg-destructive/10 transition-colors"
+                                  className="h-8 w-8 text-destructive hover:bg-destructive/20 transition-colors"
                                   onClick={() => setDeleteId(ing.id!)}
                                 >
                                   <Trash2 className="h-4 w-4" />

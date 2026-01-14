@@ -182,7 +182,7 @@ export default function StaffSection({ eventId }: StaffSectionProps) {
                 {formData.map((item, index) => (
                   <div key={index} className={`
                     p-4 rounded-xl transition-all duration-200
-                    ${isEditing ? 'bg-background/40 border border-border/50' : 'bg-transparent border-b border-border/40 hover:bg-primary/5'}
+                    ${isEditing ? 'bg-background/40 border border-border/50' : 'bg-transparent border-b border-border/40 hover:bg-primary/15'}
                   `}>
                     {isEditing ? (
                       <div className="space-y-3 md:space-y-0 md:grid md:grid-cols-12 md:gap-4 items-center">

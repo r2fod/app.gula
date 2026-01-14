@@ -22,7 +22,7 @@ export const useAIChat = (eventId?: string) => {
    */
   const sendMessage = useCallback(async (
     message: string,
-    options: { stream?: boolean, onStreamUpdate?: (text: string) => void } = {}
+    options: { stream?: boolean, onStreamUpdate?: (text: string) => void, executeActions?: boolean } = {}
   ): Promise<AIResponse | null> => {
     if (!message.trim()) return null;
 
@@ -32,6 +32,10 @@ export const useAIChat = (eventId?: string) => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       const user = session?.user;
+
+      // Detectar si el usuario quiere ejecutar acciones
+      const wantsAction = /^(sí|si|yes|ok|dale|hazlo|aplica|ejecuta|confirma)/i.test(message.trim());
+      const shouldExecute = options.executeActions || wantsAction;
 
       // Si es streaming, realizamos una llamada fetch directa (React Query / invoke no soportan streams bien)
       if (options.stream) {
@@ -80,7 +84,7 @@ export const useAIChat = (eventId?: string) => {
       const { data, error } = await supabase.functions.invoke('ai-chat', {
         body: {
           message,
-          context: { eventId, userId: user?.id, currentPage: window.location.pathname },
+          context: { eventId, userId: user?.id, currentPage: window.location.pathname, wantsAction: shouldExecute },
           stream: false,
         },
       });

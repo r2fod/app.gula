@@ -182,7 +182,7 @@ const Index = () => {
             <Button
               size="lg"
               variant="outline"
-              className="text-lg px-8 w-full sm:w-auto bg-background/50 backdrop-blur-md border-primary/20 hover:bg-primary/10 hover:text-primary transition-colors"
+              className="text-lg px-8 w-full sm:w-auto bg-background/50 backdrop-blur-md border-primary/20 hover:bg-primary/20 hover:text-primary transition-colors"
               onClick={handleDemoClick}
             >
               Ver Demo
