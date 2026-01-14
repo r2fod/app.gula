@@ -217,7 +217,7 @@ export default function BeveragesSection({
                     return (
                       <TableRow
                         key={idx}
-                        className="hover:bg-muted/30 transition-colors group"
+                        className="hover:bg-primary/5 transition-all duration-200 group border-b border-border/50 last:border-0"
                       >
                         {/* Foto */}
                         <TableCell className="p-2 align-middle">
@@ -399,8 +399,9 @@ export default function BeveragesSection({
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-full"
+                              className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/20 rounded-full transition-all duration-200 backdrop-blur-sm border border-transparent hover:border-destructive/30"
                               onClick={() => removeItem(globalIndex)}
+                              title="Eliminar bebida"
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>
@@ -429,12 +430,12 @@ export default function BeveragesSection({
         )}
 
         {items.length > 0 && (
-          <div className="bg-muted/30 p-4 rounded-lg flex flex-col sm:flex-row justify-between items-center text-sm border border-border/50">
+          <div className="bg-muted/30 p-4 rounded-lg flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 text-sm border border-border/50">
             <span className="font-medium text-muted-foreground">
               Resumen {CATEGORIES.find((c) => c.key === category)?.label}
             </span>
-            <div className="flex gap-8 items-center mt-2 sm:mt-0">
-              <div className="flex flex-col items-end">
+            <div className="flex gap-4 sm:gap-8 items-center w-full sm:w-auto justify-between sm:justify-end">
+              <div className="flex flex-col items-start sm:items-end">
                 <span className="text-xs text-muted-foreground">
                   Coste Total
                 </span>
@@ -442,8 +443,8 @@ export default function BeveragesSection({
                   {calculateTotal(category).toFixed(2)} €
                 </span>
               </div>
-              <div className="h-8 w-px bg-border"></div>
-              <div className="flex flex-col items-end">
+              <div className="h-8 w-px bg-border hidden sm:block"></div>
+              <div className="flex flex-col items-start sm:items-end">
                 <span className="text-xs text-muted-foreground">
                   Por Persona
                 </span>
@@ -470,23 +471,23 @@ export default function BeveragesSection({
     <Card className="bg-section-supplies border-none shadow-sm">
       <CardHeader className="border-b pb-4">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <CardTitle className="text-xl flex items-center gap-2">
-              <Wine className="h-5 w-5 text-primary" />
-              Bebidas y Barra Libre
+          <div className="flex-1">
+            <CardTitle className="text-xl flex items-center gap-2 flex-wrap">
+              <Wine className="h-5 w-5 text-primary shrink-0" />
+              <span>Bebidas y Barra Libre</span>
             </CardTitle>
-            <div className="flex items-center gap-2 mt-1.5 text-sm text-muted-foreground">
-              <span className="bg-primary/10 text-primary px-2 py-0.5 rounded text-xs font-medium">
+            <div className="flex items-center gap-2 mt-1.5 text-sm text-muted-foreground flex-wrap">
+              <span className="bg-primary/10 text-primary px-2 py-0.5 rounded text-xs font-medium whitespace-nowrap">
                 {barHours}h barra libre
               </span>
-              <span>•</span>
-              <span>{totalGuests} invitados</span>
+              <span className="hidden sm:inline">•</span>
+              <span className="whitespace-nowrap">{totalGuests} invitados</span>
             </div>
           </div>
 
-          <div className="flex flex-col items-end gap-3">
-            <div className="flex items-center gap-4 bg-muted/30 px-3 py-1.5 rounded-md border border-border/50">
-              <div className="text-right">
+          <div className="flex flex-col items-stretch sm:items-end gap-3 w-full sm:w-auto">
+            <div className="flex items-center gap-4 bg-muted/30 px-3 py-1.5 rounded-md border border-border/50 justify-between sm:justify-end">
+              <div className="text-left sm:text-right">
                 <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">
                   Total
                 </p>
@@ -494,8 +495,8 @@ export default function BeveragesSection({
                   {calculateGrandTotal().toFixed(2)} €
                 </p>
               </div>
-              <div className="h-6 w-px bg-border hidden sm:block"></div>
-              <div className="text-right hidden sm:block">
+              <div className="h-6 w-px bg-border"></div>
+              <div className="text-left sm:text-right">
                 <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">
                   Por Pax
                 </p>
@@ -505,7 +506,7 @@ export default function BeveragesSection({
               </div>
             </div>
 
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap sm:flex-nowrap">
               {isEditing ? (
                 <>
                   {formData.length > 0 && (
@@ -525,6 +526,7 @@ export default function BeveragesSection({
                       setIsEditing(false);
                       setFormData(beverages);
                     }}
+                    className="hover:bg-destructive/10 hover:text-destructive transition-all duration-200 border border-transparent hover:border-destructive/30"
                   >
                     <X className="h-4 w-4 mr-2" /> Cancelar
                   </Button>
@@ -555,16 +557,16 @@ export default function BeveragesSection({
 
       <CardContent className="pt-6">
         <Tabs defaultValue="aperitivo" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 mb-6 p-1 bg-muted/50 rounded-lg">
+          <TabsList className="grid w-full grid-cols-3 mb-6 p-1 bg-muted/50 rounded-lg gap-1">
             {CATEGORIES.map((cat) => (
               <TabsTrigger
                 key={cat.key}
                 value={cat.key}
-                className="data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all"
+                className="data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all duration-200 hover:bg-background/50"
               >
-                <div className="flex items-center gap-2">
-                  <cat.icon className="w-4 h-4" />
-                  <span className="hidden sm:inline">{cat.label}</span>
+                <div className="flex items-center gap-2 justify-center">
+                  <cat.icon className="w-4 h-4 shrink-0" />
+                  <span className="hidden sm:inline truncate">{cat.label}</span>
                 </div>
               </TabsTrigger>
             ))}
