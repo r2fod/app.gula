@@ -27,7 +27,7 @@ jobs:
           node-version: 20   # o 18 si prefieres, pero 20 va bien con Vite
 
       - name: Instalar dependencias
-        run: npm install     # si usas bun, aquí sería 'bun install'
+        run: npm install --legacy-peer-deps
 
       - name: Build de Vite
         run: npm run build   # o 'bun run build' si usas bun
