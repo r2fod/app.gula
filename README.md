@@ -1,6 +1,6 @@
 # 🍽️ Gula - Sistema de Gestión de Eventos de Catering
 
-Aplicación web profesional para la gestión integral de eventos de catering con **inteligencia artificial integrada**.
+Aplicación web profesional para la gestión integral de eventos de catering con **inteligencia artificial integrada*.
 
 ![React](https://img.shields.io/badge/React-18.3.1-blue)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.8.3-blue)
