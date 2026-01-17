@@ -147,19 +147,19 @@ const Events = () => {
 
               <div className="flex items-center justify-between sm:justify-end gap-2 md:gap-4 w-full sm:w-auto">
                 <ProfileSettings />
-                <Button variant="outline" size="sm" asChild className="hidden lg:flex">
+                <Button variant="outline" size="sm" asChild className="hidden md:flex">
                   <Link to="/analytics">
                     <Activity className="w-4 h-4 mr-2" />
                     Rendimiento
                   </Link>
                 </Button>
-                <Button variant="outline" size="sm" asChild className="hidden sm:flex">
+                <Button variant="outline" size="sm" asChild className="hidden md:flex">
                   <Link to="/escandallos">
                     <ChefHat className="w-4 h-4 mr-2" />
                     Escandallos
                   </Link>
                 </Button>
-                <Button variant="outline" size="sm" asChild className="hidden sm:flex">
+                <Button variant="outline" size="sm" asChild className="hidden md:flex">
                   <Link to="/menus">
                     <UtensilsCrossed className="w-4 h-4 mr-2" />
                     Menús

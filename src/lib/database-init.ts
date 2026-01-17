@@ -1,4 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
+import { logger } from './logger';
 
 interface TableSchema {
   name: string;
@@ -34,14 +35,14 @@ async function checkTableExists(tableName: string, columns: string): Promise<boo
       .from(tableName)
       .select(columns)
       .limit(1);
-    
+
     if (!error) {
       return true;
     }
-    
+
     const errorMessage = error?.message?.toLowerCase() || '';
-    return !errorMessage.includes('does not exist') && 
-           !errorMessage.includes('relation') && 
+    return !errorMessage.includes('does not exist') &&
+           !errorMessage.includes('relation') &&
            !errorMessage.includes('not found');
   } catch {
     return false;
@@ -55,44 +56,49 @@ export async function initializeDatabase(): Promise<{
 }> {
   const missingTables: string[] = [];
   const existingTables: string[] = [];
-  
-  console.log('🔍 Checking database tables...');
-  
+
+  logger.info('🔍 Checking database tables...');
+
   for (const schema of REQUIRED_TABLES) {
     const exists = await checkTableExists(schema.name, schema.checkQuery);
-    
+
     if (!exists) {
-      console.warn(`⚠️ Table ${schema.name} does not exist`);
+      logger.warn(`⚠️ Table ${schema.name} does not exist`);
       missingTables.push(schema.name);
     } else {
-      console.log(`✓ Table ${schema.name} exists`);
+      logger.info(`✓ Table ${schema.name} exists`);
       existingTables.push(schema.name);
     }
   }
-  
+
   if (missingTables.length > 0) {
-    console.warn(`⚠️ Missing tables: ${missingTables.join(', ')}`);
-    console.log('📝 Please run the following SQL in Supabase SQL Editor:');
-    console.log('https://supabase.com/dashboard/project/wfkuclqzcwsdysxqhzmi/sql/new');
-    console.log('\nMissing migrations:');
-    
-    if (missingTables.includes('ai_interactions') || 
-        missingTables.includes('ai_knowledge') || 
+    logger.warn(`⚠️ Missing tables: ${missingTables.join(', ')}`);
+    logger.info('📝 Please run the following SQL in Supabase SQL Editor:');
+    logger.info('https://supabase.com/dashboard/project/wfkuclqzcwsdysxqhzmi/sql/new');
+    logger.info('\nMissing migrations:');
+
+    if (missingTables.includes('ai_interactions') ||
+        missingTables.includes('ai_knowledge') ||
         missingTables.includes('ai_event_patterns')) {
-      console.log('- 20250120000000_ai_training_system.sql');
+      logger.info('- supabase/migrations/20240101000000_ai_system.sql');
     }
-    
-    if (missingTables.includes('role_permissions') || 
+
+    if (missingTables.includes('role_permissions') ||
         missingTables.includes('role_audit_log')) {
-      console.log('- 20250120010000_roles_and_permissions.sql');
+      logger.info('- supabase/migrations/20240101000001_role_system.sql');
     }
-  } else {
-    console.log('✅ All required tables exist');
+
+    return {
+      success: false,
+      missingTables,
+      existingTables
+    };
   }
-  
+
+  logger.info('✅ Todas las tablas requeridas existen');
   return {
-    success: missingTables.length === 0,
-    missingTables,
+    success: true,
+    missingTables: [],
     existingTables
   };
 }

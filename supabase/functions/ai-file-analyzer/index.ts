@@ -31,20 +31,13 @@ serve(async (req) => {
 
     // Extraer texto según el tipo de archivo
     if (fileType === 'pdf') {
-      // Para PDFs, usaríamos una librería de OCR o API
-      // Por ahora, simulamos la extracción
       const arrayBuffer = await fileResponse.arrayBuffer();
-      // TODO: Implementar extracción real de PDF con pdf-parse o similar
-      extractedText = 'Texto extraído del PDF...';
+      extractedText = 'Análisis de PDF: Este archivo requiere procesamiento manual. Por favor, revisa el contenido y añade la información manualmente al evento.';
     } else if (fileType === 'xlsx' || fileType === 'xls') {
-      // Para Excel, usaríamos una librería como xlsx
       const arrayBuffer = await fileResponse.arrayBuffer();
-      // TODO: Implementar lectura de Excel
-      extractedText = 'Datos extraídos de Excel...';
+      extractedText = 'Análisis de Excel: Este archivo requiere procesamiento manual. Por favor, revisa el contenido y añade la información manualmente al evento.';
     } else if (['jpg', 'jpeg', 'png'].includes(fileType)) {
-      // Para imágenes, usaríamos OCR (Google Vision API, Tesseract, etc.)
-      // TODO: Implementar OCR
-      extractedText = 'Texto extraído de la imagen...';
+      extractedText = 'Análisis de imagen: Este archivo requiere procesamiento manual. Por favor, revisa el contenido y añade la información manualmente al evento.';
     } else {
       // Para archivos de texto plano
       extractedText = await fileResponse.text();

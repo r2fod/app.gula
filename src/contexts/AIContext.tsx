@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, ReactNode, useCallback } from 'react';
+import { logger } from '@/lib/logger';
 
 /**
  * Estructura de un mensaje de la IA.
@@ -46,11 +47,13 @@ interface AIContextType {
   suggestions: AISuggestion[];
   isProcessing: boolean;
   currentEventId: string | null;
+  isAssistantOpen: boolean;
   addMessage: (role: 'user' | 'assistant', content: string, actions?: AIAction[]) => void;
   updateMessageContent: (index: number, content: string) => void;
   executeAction: (action: AIAction) => Promise<void>;
   dismissSuggestion: (suggestionId: string) => void;
   setCurrentEventId: (eventId: string | null) => void;
+  setIsAssistantOpen: (isOpen: boolean) => void;
   clearMessages: () => void;
 }
 
@@ -69,6 +72,7 @@ export const AIProvider = ({ children }: { children: ReactNode }) => {
   const [suggestions, setSuggestions] = useState<AISuggestion[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [currentEventId, setCurrentEventId] = useState<string | null>(null);
+  const [isAssistantOpen, setIsAssistantOpen] = useState(false);
 
   const addMessage = useCallback((role: 'user' | 'assistant', content: string, actions?: AIAction[]) => {
     const newMessage: AIMessage = {
@@ -92,9 +96,7 @@ export const AIProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const executeAction = useCallback(async (action: AIAction) => {
-    // Esta función será implementada para ejecutar acciones específicas
-    console.log('Executing action:', action);
-    // TODO: Implementar lógica de ejecución de acciones
+    logger.debug('Ejecutando acción:', action);
   }, []);
 
   const dismissSuggestion = useCallback((suggestionId: string) => {
@@ -112,11 +114,13 @@ export const AIProvider = ({ children }: { children: ReactNode }) => {
         suggestions,
         isProcessing,
         currentEventId,
+        isAssistantOpen,
         addMessage,
         updateMessageContent,
         executeAction,
         dismissSuggestion,
         setCurrentEventId,
+        setIsAssistantOpen,
         clearMessages,
       }}
     >

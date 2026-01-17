@@ -27,6 +27,7 @@ import { useRecipes, Recipe, RECIPE_CATEGORIES } from "@/features/recipes/hooks/
 import { useAuth } from "@/contexts/AuthContext";
 import { RoleGuard, RoleBadge } from "@/components/RoleGuard";
 import { useRole } from "@/contexts/RoleContext";
+import { useAI } from "@/contexts/AIContext";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -42,6 +43,7 @@ export default function Recipes() {
   const navigate = useNavigate();
   const { isDemo } = useAuth();
   const { hasPermission, role } = useRole();
+  const { setIsAssistantOpen } = useAI();
   const {
     recipes,
     ingredients,

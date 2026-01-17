@@ -22,12 +22,11 @@ interface AIAssistantProps {
  */
 export default function AIAssistant({ eventId }: AIAssistantProps) {
   const { user } = useAuth();
-  const { messages, updateMessageContent } = useAI();
+  const { messages, updateMessageContent, isAssistantOpen, setIsAssistantOpen } = useAI();
   const { sendMessage, uploadAndAnalyzeFile, loading } = useAIChat(eventId);
   const { submitFeedback, submitting } = useAIFeedback();
   const { toast } = useToast();
 
-  const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState("");
   const [feedbackGiven, setFeedbackGiven] = useState<Set<string>>(new Set());
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -259,7 +258,7 @@ export default function AIAssistant({ eventId }: AIAssistantProps) {
     <>
       {/* Botón flotante con animación de rebote sutil */}
       <AnimatePresence>
-        {!isOpen && (
+        {!isAssistantOpen && (
           <motion.div
             initial={{ scale: 0, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
@@ -269,7 +268,7 @@ export default function AIAssistant({ eventId }: AIAssistantProps) {
             className="fixed bottom-6 right-6 z-50"
           >
             <Button
-              onClick={() => setIsOpen(true)}
+              onClick={() => setIsAssistantOpen(true)}
               className="h-14 w-14 rounded-full shadow-lg bg-primary hover:bg-primary/90"
               size="icon"
             >
@@ -281,7 +280,7 @@ export default function AIAssistant({ eventId }: AIAssistantProps) {
 
       {/* Tarjeta del Chat con animación de despliegue */}
       <AnimatePresence>
-        {isOpen && (
+        {isAssistantOpen && (
           <motion.div
             initial={{ opacity: 0, y: 20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -295,7 +294,7 @@ export default function AIAssistant({ eventId }: AIAssistantProps) {
                   <Sparkles className="h-5 w-5" />
                   Cerebro Gula
                 </CardTitle>
-                <Button variant="ghost" size="icon" onClick={() => setIsOpen(false)} className="h-8 w-8 text-primary-foreground hover:bg-white/20 transition-colors">
+                <Button variant="ghost" size="icon" onClick={() => setIsAssistantOpen(false)} className="h-8 w-8 text-primary-foreground hover:bg-white/20 transition-colors">
                   <X className="h-4 w-4" />
                 </Button>
               </CardHeader>
