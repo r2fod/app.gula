@@ -28,6 +28,7 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 const Recipes = lazy(() => import("./pages/Recipes"));
 const Ingredients = lazy(() => import("./pages/Ingredients"));
 const Analytics = lazy(() => import("./pages/Analytics"));
+const Admin = lazy(() => import("./pages/Admin"));
 
 const queryClient = new QueryClient();
 
@@ -130,6 +131,16 @@ const App = () => (
                               <ProtectedRoute>
                                 <ErrorBoundary>
                                   <Analytics />
+                                </ErrorBoundary>
+                              </ProtectedRoute>
+                            }
+                          />
+                          <Route
+                            path="/admin"
+                            element={
+                              <ProtectedRoute>
+                                <ErrorBoundary>
+                                  <Admin />
                                 </ErrorBoundary>
                               </ProtectedRoute>
                             }

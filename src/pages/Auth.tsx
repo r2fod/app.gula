@@ -1,14 +1,16 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { signIn, signUp, resetPassword, updatePassword, verifyRegistrationCode } from "@/lib/supabase";
+import { signIn, signUp, resetPassword, updatePassword } from "@/lib/supabase";
+import { InvitationService } from "@/services/invitationService";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { Calendar, Loader2, KeyRound } from "lucide-react";
+import { Calendar, Loader2, Mail, CheckCircle2 } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const Auth = () => {
   const [loading, setLoading] = useState(false);
@@ -19,6 +21,9 @@ const Auth = () => {
   const [registrationCode, setRegistrationCode] = useState("");
   const [showResetForm, setShowResetForm] = useState(false);
   const [isResettingPassword, setIsResettingPassword] = useState(false);
+  const [invitationToken, setInvitationToken] = useState<string | null>(null);
+  const [invitationValid, setInvitationValid] = useState(false);
+  const [invitationEmail, setInvitationEmail] = useState("");
   const { user } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -32,7 +37,32 @@ const Auth = () => {
     if (searchParams.get('reset') === 'true') {
       setIsResettingPassword(true);
     }
+
+    const token = searchParams.get('invitation');
+    if (token) {
+      validateInvitation(token);
+    }
   }, [user, navigate, searchParams]);
+
+  const validateInvitation = async (token: string) => {
+    const validation = await InvitationService.validateToken(token);
+    if (validation.valid && validation.invitation) {
+      setInvitationToken(token);
+      setInvitationValid(true);
+      setInvitationEmail(validation.invitation.email);
+      setEmail(validation.invitation.email);
+      toast({
+        title: "✅ Invitación válida",
+        description: `Bienvenido! Completa tu registro para ${validation.invitation.email}`,
+      });
+    } else {
+      toast({
+        title: "❌ Invitación inválida",
+        description: validation.error || "La invitación no es válida o ha expirado",
+        variant: "destructive",
+      });
+    }
+  };
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -71,22 +101,10 @@ const Auth = () => {
       return;
     }
 
-    if (!registrationCode.trim()) {
+    if (!invitationToken) {
       toast({
         title: "Error",
-        description: "Por favor ingresa el código de registro",
-        variant: "destructive",
-      });
-      setLoading(false);
-      return;
-    }
-
-    // Verify registration code
-    const isValidCode = await verifyRegistrationCode(registrationCode);
-    if (!isValidCode) {
-      toast({
-        title: "Código inválido",
-        description: "El código de registro no es válido",
+        description: "Necesitas una invitación válida para registrarte",
         variant: "destructive",
       });
       setLoading(false);
@@ -102,11 +120,12 @@ const Auth = () => {
         variant: "destructive",
       });
     } else {
+      await InvitationService.markAsUsed(invitationToken);
+
       toast({
         title: "¡Cuenta creada!",
-        description: "Tu cuenta ha sido creada exitosamente",
+        description: "Por favor revisa tu email para confirmar tu cuenta",
       });
-      navigate("/events");
     }
 
     setLoading(false);
@@ -324,6 +343,24 @@ const Auth = () => {
           </TabsContent>
 
           <TabsContent value="signup">
+            {invitationValid && (
+              <Alert className="mb-4 bg-green-50 border-green-200">
+                <CheckCircle2 className="h-4 w-4 text-green-600" />
+                <AlertDescription className="text-green-800">
+                  Invitación válida para: <strong>{invitationEmail}</strong>
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {!invitationToken && (
+              <Alert className="mb-4">
+                <Mail className="h-4 w-4" />
+                <AlertDescription>
+                  Necesitas una invitación para registrarte. Contacta con un administrador.
+                </AlertDescription>
+              </Alert>
+            )}
+
             <form onSubmit={handleSignUp} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="signup-name">Nombre Completo</Label>
@@ -334,7 +371,7 @@ const Auth = () => {
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   required
-                  disabled={loading}
+                  disabled={loading || !invitationToken}
                 />
               </div>
 
@@ -347,7 +384,8 @@ const Auth = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  disabled={loading}
+                  disabled={loading || invitationToken !== null}
+                  readOnly={invitationToken !== null}
                 />
               </div>
 
@@ -360,28 +398,12 @@ const Auth = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  disabled={loading}
+                  disabled={loading || !invitationToken}
                   minLength={6}
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="signup-code">Código de Registro</Label>
-                <Input
-                  id="signup-code"
-                  type="text"
-                  placeholder="Introduce el código"
-                  value={registrationCode}
-                  onChange={(e) => setRegistrationCode(e.target.value)}
-                  required
-                  disabled={loading}
-                />
-                <p className="text-[10px] md:text-xs text-muted-foreground">
-                  Solicita el código a tu administrador
-                </p>
-              </div>
-
-              <Button type="submit" className="w-full" disabled={loading}>
+              <Button type="submit" className="w-full" disabled={loading || !invitationToken}>
                 {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Crear Cuenta
               </Button>

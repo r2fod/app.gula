@@ -7,18 +7,20 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Calendar, MapPin, Users, Plus, LogOut, Loader2, UtensilsCrossed, Building2, ChefHat, Activity, Menu } from "lucide-react";
+import { Calendar, MapPin, Users, Plus, LogOut, Loader2, UtensilsCrossed, Building2, ChefHat, Activity, Menu, Settings } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import ProfileSettings from "@/components/ProfileSettings";
 import { useEvents } from "@/features/events/hooks/useEvents";
 import { motion } from "framer-motion";
 import { PageTransition } from "@/components/PageTransition";
+import { useRole } from "@/contexts/RoleContext";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 
 /**
@@ -67,6 +69,7 @@ const Events = () => {
   const [profileLoading, setProfileLoading] = useState(true);
   const [profile, setProfile] = useState<{ company_name?: string; avatar_url?: string } | null>(null);
   const { user, isDemo, setDemoMode } = useAuth();
+  const { isAdmin } = useRole();
   const navigate = useNavigate();
   // const { toast } = useToast(); // Ya no se necesita aquí si el hook maneja sus errores, pero profile fetching aún lo podría usar
 
@@ -180,6 +183,17 @@ const Events = () => {
                         Menús
                       </Link>
                     </DropdownMenuItem>
+                    {isAdmin && (
+                      <>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem asChild>
+                          <Link to="/admin" className="flex items-center cursor-pointer">
+                            <Settings className="w-4 h-4 mr-2" />
+                            Administración
+                          </Link>
+                        </DropdownMenuItem>
+                      </>
+                    )}
                   </DropdownMenuContent>
                 </DropdownMenu>
 
@@ -202,6 +216,14 @@ const Events = () => {
                     Menús
                   </Link>
                 </Button>
+                {isAdmin && (
+                  <Button variant="outline" size="sm" asChild className="hidden md:flex">
+                    <Link to="/admin">
+                      <Settings className="w-4 h-4 mr-2" />
+                      Administración
+                    </Link>
+                  </Button>
+                )}
 
                 <Button size="sm" asChild className="flex-1 sm:flex-none">
                   <Link to="/events/create">
