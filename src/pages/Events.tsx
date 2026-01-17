@@ -7,13 +7,19 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Calendar, MapPin, Users, Plus, LogOut, Loader2, UtensilsCrossed, Building2, ChefHat, Activity } from "lucide-react";
+import { Calendar, MapPin, Users, Plus, LogOut, Loader2, UtensilsCrossed, Building2, ChefHat, Activity, Menu } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import ProfileSettings from "@/components/ProfileSettings";
 import { useEvents } from "@/features/events/hooks/useEvents";
 import { motion } from "framer-motion";
 import { PageTransition } from "@/components/PageTransition";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 /**
  * Variantes de animación para la lista de eventos.
@@ -147,6 +153,37 @@ const Events = () => {
 
               <div className="flex items-center justify-between sm:justify-end gap-2 md:gap-4 w-full sm:w-auto">
                 <ProfileSettings />
+
+                {/* Menú hamburguesa para móvil/tablet */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm" className="md:hidden">
+                      <Menu className="w-4 h-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48">
+                    <DropdownMenuItem asChild>
+                      <Link to="/analytics" className="flex items-center cursor-pointer">
+                        <Activity className="w-4 h-4 mr-2" />
+                        Rendimiento
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/escandallos" className="flex items-center cursor-pointer">
+                        <ChefHat className="w-4 h-4 mr-2" />
+                        Escandallos
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/menus" className="flex items-center cursor-pointer">
+                        <UtensilsCrossed className="w-4 h-4 mr-2" />
+                        Menús
+                      </Link>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                {/* Botones para desktop */}
                 <Button variant="outline" size="sm" asChild className="hidden md:flex">
                   <Link to="/analytics">
                     <Activity className="w-4 h-4 mr-2" />
@@ -165,6 +202,7 @@ const Events = () => {
                     Menús
                   </Link>
                 </Button>
+
                 <Button size="sm" asChild className="flex-1 sm:flex-none">
                   <Link to="/events/create">
                     <Plus className="w-4 h-4 mr-2" />
